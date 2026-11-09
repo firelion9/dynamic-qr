@@ -17,3 +17,9 @@ Then:
 ```sh
 npm run dev
 ```
+
+## Tests
+
+```sh
+npm test
+```
