@@ -1,10 +1,10 @@
-import shaderCode from '@/shaders/qr.wgsl?raw'
+import shaderCode from '@/shaders/test.wgsl?raw';
+import { setGPUState } from '@/gpuState';
 
-async function main() {
-
+export async function initWebGPU() {
     if (!navigator.gpu) {
         console.error("WebGPU is not supported");
-        return;
+        return null;
     }
 
     const adapter = await navigator.gpu.requestAdapter({
@@ -14,15 +14,22 @@ async function main() {
 
     if (!device) {
         console.error("Failed to receive device. Check that WebGPU is enabled in your browser and works correctly. Sometimes you need have things like Vulkan drivers installed (for Chrome for example). Also enable Vulkan in the browser settings");
-        return;
+        return null;
     }
 
-    // This where shader is compiled, this could throw
-    // if shader has errors - keep that in mind
     const shaderModule = device.createShaderModule({
         code: shaderCode,
     });
 
-}
+    const compilationInfo = await shaderModule.getCompilationInfo();
+    if (compilationInfo.messages.length > 0) {
+        for (const msg of compilationInfo.messages) {
+            console.warn(`Shader [${msg.type}] at line ${msg.lineNum}:${msg.linePos} - ${msg.message}`);
+        }
+    } else {
+        console.log("Shader compiled cleanly.");
+    }
 
-main();
+    setGPUState(device, shaderModule);
+    return { device, shaderModule };
+}

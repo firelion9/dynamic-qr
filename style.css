@@ -55,3 +55,12 @@ input:focus {
 .btn:active {
   transform: scale(0.98);
 }
+
+#qr-canvas {
+  margin-top: 24px;
+  width: 256px;
+  height: 256px;
+  border-radius: 8px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+  background: #fff;
+}

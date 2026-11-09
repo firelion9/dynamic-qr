@@ -1,17 +1,40 @@
 <!DOCTYPE html>
 <html lang="ru">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Поле ввода</title>
   <link rel="stylesheet" href="style.css">
-  </head>
+</head>
+
 <body>
 
   <input type="text" placeholder="Enter text…">
   <button class="btn">Show preview</button>
   <canvas id="qr-canvas" width="512" height="512"></canvas>
 
-  <script type="module" src="/src/main.ts"></script>
+  <script type="module">
+    import { applyToCanvas } from '/src/render.ts';
+    import { shaderModule } from '/src/gpuState.ts';
+    import { initWebGPU } from '/src/main.ts';
+
+    // === Initializing WebGPU
+    await initWebGPU()
+
+
+    async function start() {
+
+      const canvas = document.querySelector('#qr-canvas');
+      const btn = document.querySelector('.btn');
+      const input = document.querySelector('input');
+
+      if (canvas) {
+        await applyToCanvas(canvas, shaderModule);
+      }
+    }
+    start().catch(console.error);
+  </script>
 </body>
+
 </html>
