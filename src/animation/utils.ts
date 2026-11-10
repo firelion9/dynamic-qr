@@ -60,8 +60,8 @@ export function toRenderable<S>(animation: QrAnimation<S>, state: S): FrameRende
     }
 }
 
-export function qrDataToBuffers(device: GPUDevice, data: QrMatrix, seed: number): QrDataBuffers {
-    const n = data.length;
+export function qrDataToBuffers(device: GPUDevice, data: QrMatrix, seed: number, frame = 4): QrDataBuffers {
+    const n = data.length + 2 * frame;
     const vertexCount = n * n * 2 * 3;
     const moduleSize = 1.0 / n;
 
@@ -107,12 +107,17 @@ export function qrDataToBuffers(device: GPUDevice, data: QrMatrix, seed: number)
     const moduleAttributes = new Uint32Array(vertexCount * 4);
     for (let y = 0, bufferOffset = 0; y < n; ++y) {
         for (let x = 0; x < n; ++x) {
-            const flags = (data[y][x] ? 1 : 0) | (layout.reserved[y][x] ? 2 : 0) | (free[y][x] ? 4 : 0);
+            const [row, col] = [y - frame, x - frame];
+            const inQr = row >= 0 && row < data.length && col >= 0 && col < data.length;
+            const flags = inQr
+                ? (data[row][col] ? 1 : 0) | (layout.reserved[row][col] ? 2 : 0) | (free[row][col] ? 4 : 0)
+                : 2 | 8;
+            const codeword = inQr ? layout.codeword[row][col] : -1;
             for (let i = 0; i < 6; ++i) {
                 moduleAttributes[bufferOffset++] = x;
                 moduleAttributes[bufferOffset++] = y;
                 moduleAttributes[bufferOffset++] = flags;
-                moduleAttributes[bufferOffset++] = layout.codeword[y][x];
+                moduleAttributes[bufferOffset++] = codeword;
             }
         }
     }
