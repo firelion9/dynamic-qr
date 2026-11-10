@@ -278,6 +278,45 @@ body {
     border-radius: 4px;
 }
 
+.btn-gallery-export {
+    position: absolute;
+    top: 6px;
+    right: 6px;
+    background: rgba(18, 18, 42, 0.85);
+    border: 1px solid #3a3a5e;
+    border-radius: 6px;
+    color: #e0e0e0;
+    padding: 3px 6px;
+    font-size: 10px;
+    font-weight: 600;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    z-index: 10;
+    transition: all 0.2s ease;
+    backdrop-filter: blur(4px);
+    opacity: 0.8;
+}
+
+.btn-gallery-export:hover:not(:disabled) {
+    opacity: 1;
+    background: #6c5ce7;
+    border-color: #6c5ce7;
+    color: #ffffff;
+    transform: scale(1.05);
+}
+
+.btn-gallery-export:disabled {
+    opacity: 0.6;
+    cursor: wait;
+}
+
+.btn-gallery-export svg {
+    width: 11px;
+    height: 11px;
+}
+
 /* Style variations */
 .style-neon .gallery-qr {
     filter: drop-shadow(0 0 8px #6c5ce7);
