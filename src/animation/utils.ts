@@ -4,7 +4,7 @@ import { QrMatrix } from "@/qr/encode";
 export interface QrAnimation<S> {
     init: (device: GPUDevice) => Promise<void>;
     createState: (device: GPUDevice, data: QrMatrix, seed: number, format: GPUTextureFormat) => S;
-    frame: (device: GPUDevice, context: GPUCanvasContext, state: S, delta: number) => void;
+    frame: (device: GPUDevice, outTexture: GPUTextureView, state: S, delta: number) => void;
 }
 
 export interface BufferWithLayout {
@@ -16,17 +16,50 @@ export interface QrDataBuffers {
     vertexCount: number;
     positionsBuffer: BufferWithLayout;
     qrAttributesBuffer: BufferWithLayout;
+    uniformBuffer: GPUBuffer;
+    uniformBindGroup: GPUBindGroup;
+    uniformLayout: GPUBindGroupLayout;
+    time: number;
+    seed: number;
+}
+
+export function updateQrDataUniforms (data: QrDataBuffers, device: GPUDevice, delta: number) {
+    data.time += delta;
+    device.queue.writeBuffer(data.uniformBuffer, 0, new Float32Array([data.time, data.seed, 0, 0]));
+}
+
+export function doDrawQrData (data: QrDataBuffers, pass: GPURenderPassEncoder) {
+    pass.setBindGroup(0, data.uniformBindGroup);
+    pass.setVertexBuffer(0, data.positionsBuffer.buffer);
+    pass.setVertexBuffer(1, data.qrAttributesBuffer.buffer);
+    pass.draw(data.vertexCount);
+}
+
+export async function compileShader (device: GPUDevice, shaderCode: string): Promise<GPUShaderModule> {
+    const shaderModule = device.createShaderModule({
+        code: shaderCode,
+    });
+
+    const compilationInfo = await shaderModule.getCompilationInfo();
+    if (compilationInfo.messages.length > 0) {
+        for (const msg of compilationInfo.messages) {
+            console.warn(`Shader [${msg.type}] at line ${msg.lineNum}:${msg.linePos} - ${msg.message}`);
+        }
+    } else {
+        console.log("Shader compiled cleanly.");
+    }
+    return shaderModule
 }
 
 export function toRenderable<S>(animation: QrAnimation<S>, state: S): FrameRenderer {
     return {
-        render: function (device: GPUDevice, context: GPUCanvasContext, delta: number): void {
-            return animation.frame(device, context, state, delta);
+        render: function (device: GPUDevice, outTexture: GPUTextureView, delta: number): void {
+            return animation.frame(device, outTexture, state, delta);
         }
     }
 }
 
-export function qrDataToBuffers(device: GPUDevice, data: QrMatrix): QrDataBuffers {
+export function qrDataToBuffers(device: GPUDevice, data: QrMatrix, seed: number): QrDataBuffers {
     const n = data.length;
     const vertexCount = n * n * 2 * 3;
     const moduleSize = 1.0 / n;
@@ -91,10 +124,32 @@ export function qrDataToBuffers(device: GPUDevice, data: QrMatrix): QrDataBuffer
     };
     device.queue.writeBuffer(moduleAttributesBuffer, 0, moduleAttributes);
 
+    const uniformLayout = device.createBindGroupLayout({
+        entries: [{
+            binding: 0,
+            visibility: GPUShaderStage.FRAGMENT | GPUShaderStage.VERTEX,
+            buffer: { type: "uniform" },
+        }],
+    });
+    const uniformBuffer = device.createBuffer({
+        size: 16,
+        usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST,
+    });
+
+    const uniformBindGroup = device.createBindGroup({
+        layout: uniformLayout,
+        entries: [{ binding: 0, resource: { buffer: uniformBuffer } }],
+    });
+
     return {
         qrSize: n,
         vertexCount: vertexCount,
         positionsBuffer: { buffer: positionsBuffer, layout: positionsBufferLayout },
         qrAttributesBuffer: { buffer: moduleAttributesBuffer, layout: moduleAttributesBufferLayout },
+        uniformBindGroup: uniformBindGroup,
+        uniformBuffer: uniformBuffer,
+        uniformLayout: uniformLayout,
+        time: 0.0,
+        seed: seed,
     };
 }

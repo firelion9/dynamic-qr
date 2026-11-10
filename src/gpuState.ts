@@ -1,15 +1,13 @@
 import { QrAnimation } from "./animation/utils";
 
 export interface FrameRenderer {
-  render: (device: GPUDevice, context: GPUCanvasContext, delta: number) => void;
+  render: (device: GPUDevice, outTexture: GPUTextureView, delta: number) => void;
 }
 
 export let device: GPUDevice;
-export let frameRenderer: FrameRenderer;
 
-export function setGPUState(dev: GPUDevice, renderer: FrameRenderer) {
+export function setGPUState(dev: GPUDevice) {
     device = dev;
-    frameRenderer = renderer;
 }
 
 export async function logErrors(){
