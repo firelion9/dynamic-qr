@@ -15,8 +15,8 @@
   <canvas id="qr-canvas" width="512" height="512"></canvas>
 
   <script type="module">
-    import { applyToCanvas } from '/src/render.ts';
-    import { shaderModule } from '/src/gpuState.ts';
+    import { applyToCanvas, wrapCanvasAnimation } from '/src/render.ts';
+    import { frameRenderer } from '/src/gpuState.ts';
     import { initWebGPU } from '/src/main.ts';
 
     // === Initializing WebGPU
@@ -30,7 +30,11 @@
       const input = document.querySelector('input');
 
       if (canvas) {
-        await applyToCanvas(canvas, shaderModule);
+        await applyToCanvas(canvas, frameRenderer);
+        // TODO: animation loop
+        // const renderFrame = wrapCanvasAnimation(canvas, frameRenderer);
+        // const animationLoop = function(delta) { renderFrame(delta); requestAnimationFrame(animationLoop) };
+        // animationLoop();
       }
     }
     start().catch(console.error);

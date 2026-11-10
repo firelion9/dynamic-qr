@@ -1,5 +1,8 @@
 import shaderCode from '@/shaders/test.wgsl?raw';
 import { setGPUState } from '@/gpuState';
+import { encodeQr } from './qr/encode';
+import { StaticAnimation } from './animation/static';
+import { toRenderable } from './animation/utils';
 
 export async function initWebGPU() {
     if (!navigator.gpu) {
@@ -7,6 +10,8 @@ export async function initWebGPU() {
         return null;
     }
 
+    const data = encodeQr("example.org");
+    const animation = StaticAnimation;
     const adapter = await navigator.gpu.requestAdapter({
         powerPreference: 'low-power', // Prefers the Intel GPU
     });
@@ -17,19 +22,9 @@ export async function initWebGPU() {
         return null;
     }
 
-    const shaderModule = device.createShaderModule({
-        code: shaderCode,
-    });
+    animation.init(device);
 
-    const compilationInfo = await shaderModule.getCompilationInfo();
-    if (compilationInfo.messages.length > 0) {
-        for (const msg of compilationInfo.messages) {
-            console.warn(`Shader [${msg.type}] at line ${msg.lineNum}:${msg.linePos} - ${msg.message}`);
-        }
-    } else {
-        console.log("Shader compiled cleanly.");
-    }
+    const state = StaticAnimation.createState(device, data, 0, navigator.gpu.getPreferredCanvasFormat());
 
-    setGPUState(device, shaderModule);
-    return { device, shaderModule };
+    setGPUState(device, toRenderable(animation, state));
 }
