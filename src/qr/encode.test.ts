@@ -16,6 +16,11 @@ describe('encodeQr', () => {
         expect(encodeQr('https://example.com', 'H').length).toBeGreaterThan(encodeQr('https://example.com', 'L').length);
     });
 
+    it('grows to requested version', () => {
+        expect(encodeQr('hi', 'H', 10).length).toBe(17 + 4 * 10);
+        expect(encodeQr('x'.repeat(200), 'H', 1).length).toBeGreaterThan(17 + 4);
+    });
+
     it('depends on text', () => {
         expect(encodeQr('a')).not.toEqual(encodeQr('b'));
     });

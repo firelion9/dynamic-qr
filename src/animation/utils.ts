@@ -1,5 +1,6 @@
 import { FrameRenderer } from "@/gpuState";
 import { QrMatrix } from "@/qr/encode";
+import { freeModules, qrLayout } from "@/qr/layout";
 
 export interface QrAnimation<S> {
     init: (device: GPUDevice) => Promise<void>;
@@ -101,13 +102,17 @@ export function qrDataToBuffers(device: GPUDevice, data: QrMatrix, seed: number)
     };
     device.queue.writeBuffer(positionsBuffer, 0, positions);
 
-    const moduleAttributes = new Uint32Array(vertexCount * 3);
+    const layout = qrLayout(data);
+    const free = freeModules(layout);
+    const moduleAttributes = new Uint32Array(vertexCount * 4);
     for (let y = 0, bufferOffset = 0; y < n; ++y) {
         for (let x = 0; x < n; ++x) {
+            const flags = (data[y][x] ? 1 : 0) | (layout.reserved[y][x] ? 2 : 0) | (free[y][x] ? 4 : 0);
             for (let i = 0; i < 6; ++i) {
                 moduleAttributes[bufferOffset++] = x;
                 moduleAttributes[bufferOffset++] = y;
-                moduleAttributes[bufferOffset++] = data[y][x] ? 1 : 0;
+                moduleAttributes[bufferOffset++] = flags;
+                moduleAttributes[bufferOffset++] = layout.codeword[y][x];
             }
         }
     }
@@ -116,10 +121,11 @@ export function qrDataToBuffers(device: GPUDevice, data: QrMatrix, seed: number)
         usage: GPUBufferUsage.VERTEX | GPUBufferUsage.COPY_DST,
     });
     const moduleAttributesBufferLayout: GPUVertexBufferLayout = {
-        arrayStride: 12 /* 3 * u32 */,
+        arrayStride: 16 /* 4 * u32 */,
         attributes: [
             { shaderLocation: 1, offset: 0, format: "uint32x2" },  // position
             { shaderLocation: 2, offset: 8, format: "uint32" },    // flags
+            { shaderLocation: 3, offset: 12, format: "uint32" },   // codeword
         ],
     };
     device.queue.writeBuffer(moduleAttributesBuffer, 0, moduleAttributes);
