@@ -1,7 +1,7 @@
-import { device } from "@/gpuState";
+import { device, FrameRenderer } from "@/gpuState";
 
 
-export async function applyToCanvas(canvas: HTMLCanvasElement, shader: GPUShaderModule) {
+export async function applyToCanvas(canvas: HTMLCanvasElement, frameRenderer: FrameRenderer) {
     if (!device) {
         throw new Error("Device is not initialized in gpuState");
     }
@@ -12,40 +12,19 @@ export async function applyToCanvas(canvas: HTMLCanvasElement, shader: GPUShader
     const format = navigator.gpu.getPreferredCanvasFormat();
     context.configure({ device, format, alphaMode: 'opaque' });
 
-    const pipeline = device.createRenderPipeline({
-        label: 'Shader pipeline',
-        layout: 'auto',
-        vertex: {
-            module: shader,
-            entryPoint: 'vs_main',
-        },
-        fragment: {
-            module: shader,
-            entryPoint: 'fs_main',
-            targets: [{ format }],
-        },
-        primitive: {
-            topology: 'triangle-list',
-        },
-    });
+    frameRenderer.render(device, context, 0.0);
+}
 
-    const encoder = device.createCommandEncoder();
-    const renderPass = encoder.beginRenderPass({
-        colorAttachments: [
-            {
-                view: context.getCurrentTexture().createView(),
-                clearValue: { r: 0.0, g: 0.0, b: 0.0, a: 1.0 },
-                loadOp: 'clear',
-                storeOp: 'store',
-            },
-        ],
-    });
-    renderPass.setPipeline(pipeline);
-    renderPass.draw(3); // Draw 3 vertices
-    renderPass.end();
+export function wrapCanvasAnimation(canvas: HTMLCanvasElement, frameRenderer: FrameRenderer): (delta: number) => void {
+    if (!device) {
+        throw new Error("Device is not initialized in gpuState");
+    }
 
-    // Send to gPU
-    device.queue.submit([encoder.finish()]);
+    const context = canvas.getContext('webgpu');
+    if (!context) throw new Error("WebGPU context unavailable");
 
+    const format = navigator.gpu.getPreferredCanvasFormat();
+    context.configure({ device, format, alphaMode: 'opaque' });
 
+    return function (delta: number) { frameRenderer.render(device, context, delta); }
 }
