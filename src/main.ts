@@ -1,8 +1,8 @@
-import shaderCode from '@/shaders/test.wgsl?raw';
 import { setGPUState } from '@/gpuState';
 import { encodeQr } from './qr/encode';
-import { StaticAnimation } from './animation/static';
 import { toRenderable } from './animation/utils';
+import { FlippingAnimation } from './animation/flipping';
+import { AllAnimationsList } from './animation/registry';
 
 export async function initWebGPU() {
     if (!navigator.gpu) {
@@ -10,8 +10,6 @@ export async function initWebGPU() {
         return null;
     }
 
-    const data = encodeQr("example.org");
-    const animation = StaticAnimation;
     const adapter = await navigator.gpu.requestAdapter({
         powerPreference: 'low-power', // Prefers the Intel GPU
     });
@@ -22,9 +20,7 @@ export async function initWebGPU() {
         return null;
     }
 
-    animation.init(device);
+    await Promise.all(AllAnimationsList.map(anim => anim.init(device)));
 
-    const state = StaticAnimation.createState(device, data, 0, navigator.gpu.getPreferredCanvasFormat());
-
-    setGPUState(device, toRenderable(animation, state));
+    setGPUState(device);
 }

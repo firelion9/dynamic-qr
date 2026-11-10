@@ -2,6 +2,9 @@ import { initWebGPU } from '@/main';
 import { encodeQr } from '@/qr/encode';
 import { device } from '@/gpuState';
 import { StaticAnimation } from '@/animation/static';
+import { FlippingAnimation } from './animation/flipping';
+import { toRenderable } from './animation/utils';
+import { AllAnimationsList } from './animation/registry';
 
 initWebGPU().catch(console.error);
 
@@ -11,6 +14,7 @@ type ScreenKey = 1 | 2 | 3;
 let currentData = '';
 let selectedStyle = 'pulse';
 let selectedStyleName = 'Пульсация';
+let isGalleryRunning = false;
 
 const screens: Record<ScreenKey, HTMLElement> = {
     1: document.getElementById('screen1') as HTMLElement,
@@ -19,6 +23,7 @@ const screens: Record<ScreenKey, HTMLElement> = {
 };
 
 function showScreen(num: ScreenKey): void {
+    isGalleryRunning = num == 2;
     Object.values(screens).forEach(s => s.classList.remove('active'));
     screens[num].classList.add('active');
     document.querySelectorAll('[data-home]').forEach(btn => {
@@ -87,7 +92,7 @@ function populateGallery(): void {
     const data = currentData || 'https://example.com';
     const matrix = encodeQr(data);
     const format = navigator.gpu.getPreferredCanvasFormat();
-    const shaderState = device ? StaticAnimation.createState(device, matrix, 0, format) : null;
+    isGalleryRunning = true;
     for (let i = 1; i <= 6; i++) {
         const container = document.getElementById('galleryQr' + i) as HTMLElement;
         container.innerHTML = '';
@@ -96,9 +101,23 @@ function populateGallery(): void {
         canvas.height = 120;
         container.appendChild(canvas);
         const context = canvas.getContext('webgpu');
-        if (device && shaderState && context) {
+        const animation = AllAnimationsList[i % AllAnimationsList.length];
+        const animationState = device ? animation.createState(device, matrix, Math.random(), format) : null;
+        if (device && animationState && context) {
             context.configure({ device, format, alphaMode: 'opaque' });
-            StaticAnimation.frame(device, context, shaderState, 0.0);
+            const renderer = toRenderable(animation, animationState);
+            let prevTime = -1.0;
+            const renderLoop = function (time: number) {
+                if (isGalleryRunning) {
+                    if (prevTime == -1.0) prevTime = time;
+                    renderer.render(device, context.getCurrentTexture().createView(), (time - prevTime) / 1000.0);
+                    prevTime = time;
+                    requestAnimationFrame(renderLoop);
+                } else {
+                    prevTime = time;
+                }
+            }
+            requestAnimationFrame(renderLoop);
         } else {
             drawQr(canvas, matrix);
         }
