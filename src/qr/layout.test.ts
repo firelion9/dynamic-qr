@@ -1,7 +1,7 @@
 import { beforeAll, describe, expect, it } from 'vitest';
 import { decodeQr } from './decode';
 import { encodeQr, type EcLevel, type QrMatrix } from './encode';
-import { freeModules, qrLayout, type QrLayout } from './layout';
+import { fitsBudget, freeModules, qrLayout, type QrLayout } from './layout';
 import { loadZxing, render } from './test-utils';
 
 beforeAll(loadZxing);
@@ -94,5 +94,37 @@ describe('freeModules', () => {
             line.forEach((i, col) => free[row][col] && i >= 0 && perBlock[layout.codewordBlock[i]].add(i)),
         );
         layout.blocks.forEach((b, i) => expect(perBlock[i].size).toBeLessThanOrEqual(Math.floor(b.capacity / 2)));
+    });
+});
+
+describe('fitsBudget', () => {
+    const matrix = encodeQr(TEXT, 'H');
+    const layout = qrLayout(matrix);
+    const n = matrix.length;
+
+    function centerSquare(side: number): boolean[][] {
+        const from = Math.floor((n - side) / 2);
+        return matrix.map((line, row) =>
+            line.map((_, col) => row >= from && row < from + side && col >= from && col < from + side && !layout.reserved[row][col]),
+        );
+    }
+
+    it('accepts free modules', () => {
+        expect(fitsBudget(layout, freeModules(layout))).toBe(true);
+    });
+
+    it('rejects reserved modules', () => {
+        const changed = matrix.map((line, row) => line.map((_, col) => row === 0 && col === 0));
+        expect(fitsBudget(layout, changed, 1)).toBe(false);
+    });
+
+    it('guarantees readability of inverted center squares', async () => {
+        const fitting = Array.from({ length: n }, (_, side) => side).filter(side => fitsBudget(layout, centerSquare(side), 1));
+        expect(Math.max(...fitting)).toBeGreaterThan(10);
+        expect(fitsBudget(layout, centerSquare(20), 1)).toBe(false);
+        for (const side of fitting) {
+            const square = centerSquare(side);
+            expect(await decodes(matrix.map((line, row) => line.map((dark, col) => dark !== square[row][col])))).toBe(true);
+        }
     });
 });

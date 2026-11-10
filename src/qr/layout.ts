@@ -48,6 +48,19 @@ export function freeModules(layout: QrLayout, share = 0.5): boolean[][] {
     return grid(reserved.length, (row, col) => !reserved[row][col] && codeword[row][col] < end);
 }
 
+export function fitsBudget(layout: QrLayout, changed: boolean[][], share = 0.5): boolean {
+    const used = layout.blocks.map(() => new Set<number>());
+    for (let row = 0; row < changed.length; row++) {
+        for (let col = 0; col < changed.length; col++) {
+            if (!changed[row][col]) continue;
+            if (layout.reserved[row][col]) return false;
+            const i = layout.codeword[row][col];
+            if (i >= 0) used[layout.codewordBlock[i]].add(i);
+        }
+    }
+    return layout.blocks.every((b, k) => used[k].size <= Math.floor(b.capacity * share));
+}
+
 function readEcLevel(matrix: QrMatrix): EcLevel {
     const size = matrix.length;
     let bits = 0;
