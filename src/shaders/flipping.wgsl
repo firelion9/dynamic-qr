@@ -22,7 +22,7 @@ fn rand(point: vec2<f32>, time: f32, salt: f32) -> f32 {
 
 @vertex
 fn vertShader(input: VertexInput) -> VertexOutput {
-    let shouldFlip = rand(vec2<f32>(input.qrPosition), sin(uniforms.time * 0.0001), uniforms.seed) < 0.007;
+    let shouldFlip = (input.flags & 2) == 0 && rand(vec2<f32>(input.qrPosition), sin(uniforms.time * 0.0001), uniforms.seed) < 0.007;
     var out: VertexOutput;
     out.position = vec4f(input.position.x * 2 - 1, 1 - input.position.y * 2, 0.0, 1.0);
     if (((input.flags & 1) == 1) != shouldFlip) { out.color = vec3f(0.0, 0.0, 0.0); }
