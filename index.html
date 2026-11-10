@@ -52,13 +52,19 @@
 
         <!-- Screen 2: Gallery -->
         <div class="screen" id="screen2">
-            <div class="screen-title"><span class="title-text">Галерея анимаций</span><button class="btn-home" data-home>На главный</button></div>
+            <div class="screen-title"><span class="title-text">Галерея анимаций</span></div>
             <div class="window-card gallery-card">
+                <button class="editor-back gallery-back" id="btnGalleryBack">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M19 12H5M12 19l-7-7 7-7"/>
+                    </svg>
+                    <span>Назад</span>
+                </button>
                 <div class="window-body">
                     <h2 class="gallery-title">Анимации</h2>
                     <p class="gallery-subtitle">Выберите эффект для вашего QR-кода</p>
                     <div class="gallery-grid" id="galleryGrid">
-                        <div class="gallery-item style-neon" data-style="neon" data-name="Неон">
+                        <div class="gallery-item" data-style="animation1">
                             <button class="btn-gallery-export" title="Экспорт в GIF" data-export-idx="1">
                                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                     <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/>
@@ -68,9 +74,9 @@
                                 <span>GIF</span>
                             </button>
                             <div class="gallery-qr" id="galleryQr1"></div>
-                            <span class="style-badge">Неон</span>
+                            <span class="style-badge">Анимация#1</span>
                         </div>
-                        <div class="gallery-item style-pulse" data-style="pulse" data-name="Пульсация">
+                        <div class="gallery-item" data-style="animation2">
                             <button class="btn-gallery-export" title="Экспорт в GIF" data-export-idx="2">
                                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                     <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/>
@@ -80,9 +86,9 @@
                                 <span>GIF</span>
                             </button>
                             <div class="gallery-qr" id="galleryQr2"></div>
-                            <span class="style-badge">Пульсация</span>
+                            <span class="style-badge">Анимация#2</span>
                         </div>
-                        <div class="gallery-item style-glitch" data-style="glitch" data-name="Глитч">
+                        <div class="gallery-item" data-style="animation3">
                             <button class="btn-gallery-export" title="Экспорт в GIF" data-export-idx="3">
                                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                     <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/>
@@ -92,9 +98,9 @@
                                 <span>GIF</span>
                             </button>
                             <div class="gallery-qr" id="galleryQr3"></div>
-                            <span class="style-badge">Глитч</span>
+                            <span class="style-badge">Анимация#3</span>
                         </div>
-                        <div class="gallery-item style-dots" data-style="dots" data-name="Точки">
+                        <div class="gallery-item" data-style="animation4">
                             <button class="btn-gallery-export" title="Экспорт в GIF" data-export-idx="4">
                                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                     <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/>
@@ -104,9 +110,9 @@
                                 <span>GIF</span>
                             </button>
                             <div class="gallery-qr" id="galleryQr4"></div>
-                            <span class="style-badge">Точки</span>
+                            <span class="style-badge">Анимация#4</span>
                         </div>
-                        <div class="gallery-item style-gradient" data-style="gradient" data-name="Градиент">
+                        <div class="gallery-item" data-style="animation5">
                             <button class="btn-gallery-export" title="Экспорт в GIF" data-export-idx="5">
                                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                     <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/>
@@ -116,9 +122,9 @@
                                 <span>GIF</span>
                             </button>
                             <div class="gallery-qr" id="galleryQr5"></div>
-                            <span class="style-badge">Градиент</span>
+                            <span class="style-badge">Анимация#5</span>
                         </div>
-                        <div class="gallery-item style-matrix" data-style="matrix" data-name="Матрица">
+                        <div class="gallery-item" data-style="animation6">
                             <button class="btn-gallery-export" title="Экспорт в GIF" data-export-idx="6">
                                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                     <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/>
@@ -128,7 +134,7 @@
                                 <span>GIF</span>
                             </button>
                             <div class="gallery-qr" id="galleryQr6"></div>
-                            <span class="style-badge">Матрица</span>
+                            <span class="style-badge">Анимация#6</span>
                         </div>
                     </div>
                 </div>
@@ -144,7 +150,7 @@
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                             <path d="M19 12H5M12 19l-7-7 7-7"/>
                         </svg>
-                        <span id="backLabel">Пульсация</span>
+                        <span id="backLabel">Неон</span>
                     </button>
                     <button class="btn-export" id="btnExport">
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -162,6 +168,10 @@
                         </div>
                     </div>
                     <div class="editor-controls">
+                        <div class="control-group">
+                            <label>Сообщение</label>
+                            <input type="text" class="seed-input" id="messageInput">
+                        </div>
                         <div class="control-group">
                             <label>Seed</label>
                             <div class="seed-input-group">
