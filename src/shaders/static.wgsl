@@ -11,7 +11,7 @@ struct VertexOutput {
 @vertex
 fn vertShader(input: VertexInput) -> VertexOutput {
     var out: VertexOutput;
-    out.position = vec4f(input.position * 2 - 1, 0.0, 1.0);
+    out.position = vec4f(input.position.x * 2 - 1, 1 - input.position.y * 2, 0.0, 1.0);
     if ((input.flags & 1) == 1) { out.color = vec3f(0.0, 0.0, 0.0); }
     else { out.color = vec3f(1.0, 1.0, 1.0); }
     return out;
