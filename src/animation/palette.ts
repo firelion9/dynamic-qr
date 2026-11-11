@@ -39,6 +39,10 @@ export function readableColors(palette?: Palette): Pick<Palette, 'dark' | 'light
     return palette ? { dark: readableDark(palette.dark), light: readableLight(palette.light) } : DEFAULT_PALETTE;
 }
 
+export function expandPalette(palette: Pick<Palette, 'dark' | 'light'>): Palette {
+    return { ...palette, neon: palette.light, accent: palette.dark };
+}
+
 export function readableLight(c: Rgb): Rgb {
     const l = luma(c);
     return l >= MIN_LIGHT ? c : mix(c, [1, 1, 1], (MIN_LIGHT - l) / (1 - l));
