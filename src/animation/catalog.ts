@@ -16,6 +16,7 @@ const INFO: [string, string, string][] = [
     ['maze-night', 'Ночной лабиринт', 'Тот же лабиринт на чёрном фоне. Код инвертирован, поэтому его читают не все сканеры.'],
     ['flipping', 'Мерцание', 'Случайные модули на мгновение меняют цвет.'],
     ['static', 'Статика', 'Обычный QR без анимации, для сравнения.'],
+    ['breath', 'Дыхание', 'Вы знали, что модули QR-кода - это живые существа?'],
 ];
 
 export const CATALOG: CatalogEntry[] = INFO.filter(([key]) => AllAnimations.has(key)).map(([key, title, description]) => ({

@@ -20,6 +20,7 @@ export const PALETTES: { name: string; palette: Palette }[] = [
     { name: 'Закат', palette: themed([1.0, 0.2, 0.45], [0.15, 0.9, 1.0]) },
     { name: 'Матрица', palette: themed([0.05, 0.85, 0.3], [0.9, 1.0, 0.9]) },
     { name: 'Графит', palette: themed([0.45, 0.45, 0.5], [1.0, 0.35, 0.3]) },
+    { name: 'Классика', palette: { dark: [0.0, 0.0, 0.0], light: [1.0, 1.0, 1.0], neon: [0.75, 0.75, 0.75], accent: [0.1, 0.1, 0.1] } },
 ];
 
 export const DEFAULT_PALETTE = PALETTES[0].palette;
@@ -35,7 +36,7 @@ export function readableDark(c: Rgb): Rgb {
 }
 
 export function readableColors(palette?: Palette): Pick<Palette, 'dark' | 'light'> {
-    return palette ? { dark: readableDark(palette.dark), light: readableLight(palette.light) } : MONOCHROME;
+    return palette ? { dark: readableDark(palette.dark), light: readableLight(palette.light) } : DEFAULT_PALETTE;
 }
 
 export function readableLight(c: Rgb): Rgb {
