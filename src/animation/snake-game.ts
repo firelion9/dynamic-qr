@@ -1,5 +1,6 @@
 import type { QrMatrix } from '@/qr/encode';
 import { qrLayout, type QrLayout } from '@/qr/layout';
+import { random } from './random';
 
 export enum Sprite {
     None,
@@ -212,15 +213,4 @@ export class SnakeGame {
     private randomIndex(): number {
         return Math.floor(this.rand() * this.size);
     }
-}
-
-export function random(seed: number): () => number {
-    let a = Math.floor(seed * 2 ** 32) >>> 0;
-    return () => {
-        a = (a + 0x6d2b79f5) >>> 0;
-        let t = a;
-        t = Math.imul(t ^ (t >>> 15), t | 1);
-        t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
-        return ((t ^ (t >>> 14)) >>> 0) / 2 ** 32;
-    };
 }

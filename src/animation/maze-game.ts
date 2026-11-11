@@ -1,6 +1,6 @@
 import type { QrMatrix } from '@/qr/encode';
 import { qrLayout, type QrLayout } from '@/qr/layout';
-import { random } from './snake-game';
+import { random } from './random';
 
 export interface MazeOptions {
     corridorDark: boolean;
@@ -32,7 +32,7 @@ const RESPAWN_TICKS = 30;
 
 export class MazeGame {
     readonly layout: QrLayout;
-    readonly carved: boolean[][];
+    private readonly carved: boolean[][];
     readonly corridor: boolean[][];
     readonly area: Point[];
     readonly pellets = new Set<number>();
