@@ -27,7 +27,7 @@ export interface QrDataBuffers {
     uniformLayout: GPUBindGroupLayout;
     time: number;
     seed: number;
-    colors: Pick<Palette, 'dark' | 'light'>;
+    colors: Palette;
 }
 
 export function updateQrDataUniforms (data: QrDataBuffers, device: GPUDevice, delta: number) {
