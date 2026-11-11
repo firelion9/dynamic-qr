@@ -16,12 +16,11 @@ struct VertexOutput {
 const DARK = 0.28;
 const LIGHT = 0.72;
 const BG = vec3f(0.01, 0.01, 0.035);
-const HALO = vec3f(0.02, 0.05, 0.24);
-const NEON = vec3f(0.1, 0.28, 1.0);
+const NEON = vec3f(0.1, 0.25, 1.0);
 const TUBE = vec3f(0.5, 0.74, 1.0);
 const CORE = vec3f(0.9, 0.96, 1.0);
 const FILL = vec3f(0.7, 0.77, 0.97);
-const PELLET = vec3f(1.0, 0.7, 0.5);
+const PELLET = vec3f(1.0, 0.5, 0.15);
 const ORB = vec3f(1.0, 0.35, 0.75);
 const HERO = vec3f(0.6, 1.0, 0.1);
 const OUTLINE = vec3f(0.04, 0.3, 0.04);
@@ -100,9 +99,8 @@ fn wall(c: vec2i, s: vec2i, detailed: bool) -> vec4f {
     if (open(cell(c + vec2i(-1, 1)))) { d = min(d, max(s.x, 6 - s.y)); }
     if (open(cell(c + vec2i(1, 1)))) { d = min(d, max(6 - s.x, 6 - s.y)); }
 
-    if (d == 0) { return vec4f(NEON, 1.0); }
-    if (d == 2) { return vec4f(CORE, 0.0); }
-    if (d <= 3) { return vec4f(TUBE, 0.0); }
+    if (d == 1) { return vec4f(CORE, 0.0); }
+    if (d <= 2) { return vec4f(TUBE, 0.0); }
     return vec4f(FILL, 0.0);
 }
 
@@ -110,7 +108,7 @@ fn ground(c: vec2i, s: vec2i, f: u32, detailed: bool) -> vec3f {
     if (!detailed) { return BG; }
     if ((s.y == 0 && !open(cell(c + vec2i(0, -1)))) || (s.y == 6 && !open(cell(c + vec2i(0, 1)))) ||
         (s.x == 0 && !open(cell(c + vec2i(-1, 0)))) || (s.x == 6 && !open(cell(c + vec2i(1, 0))))) {
-        return HALO;
+        return NEON;
     }
     let m = abs(s - vec2i(3));
     if ((f & 16u) != 0u && m.x + m.y == 1) {
@@ -205,8 +203,7 @@ fn fragmentShader(in: VertexOutput) -> @location(0) vec4f {
     } else if ((f & 32u) != 0u) {
         col = orb(s, f, detailed);
     } else if (open(f)) {
-        let m = abs(s - vec2i(3));
-        col = vec4f(ground(c, s, f, detailed), select(0.0, 1.0, (f & 16u) != 0u && m.x + m.y == 1 && detailed));
+        col = vec4f(ground(c, s, f, detailed), 0.0);
     } else {
         col = wall(c, s, detailed);
     }
