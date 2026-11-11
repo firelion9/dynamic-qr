@@ -3,6 +3,7 @@ import { device } from '@/gpuState';
 import { AllAnimationsList } from '@/animation/registry';
 import { hashSeed } from '@/animation/random';
 import { drawQr, fitCanvas } from '@/draw';
+import { download, ExportFormat, exportAnimation } from '@/export';
 import { screenActive, showScreen } from '@/navigation';
 import { state, styleNumber } from '@/state';
 
@@ -102,54 +103,61 @@ function populateEditor(start = 0): void {
 }
 
 function initExport(): void {
-    const btnExport = document.getElementById('btnExport') as HTMLButtonElement;
-    const btnCancelExport = document.getElementById('btnCancelExport') as HTMLButtonElement;
-    const btnConfirmExport = document.getElementById('btnConfirmExport') as HTMLButtonElement;
-    const exportModal = document.getElementById('exportModal') as HTMLElement;
+    const modal = byId('exportModal');
+    const actions = byId('modalActions');
+    const options = byId('exportOptions');
+    const progress = byId('exportProgress');
+    const bar = byId('exportProgressBar');
+    const text = byId('exportText');
+    const select = (id: string) => byId<HTMLSelectElement>(id).value;
+    let running = false;
 
-    btnExport.addEventListener('click', () => {
-        exportModal.classList.add('active');
-        document.getElementById('exportProgress')!.classList.remove('active');
-        (document.getElementById('modalActions') as HTMLElement).style.display = 'flex';
-        document.getElementById('exportText')!.textContent = 'QR-код будет экспортирован в формате GIF с эффектом "' + state.selectedStyle + '"';
+    const reset = () => {
+        actions.style.display = 'flex';
+        options.hidden = false;
+        progress.classList.remove('active');
+        text.textContent = 'MP4 подходит для презентаций, GIF для мессенджеров. Кадры совпадают с превью для текущего seed.';
+    };
+
+    byId('btnExport').addEventListener('click', () => {
+        reset();
+        modal.classList.add('active');
+    });
+    byId('btnCancelExport').addEventListener('click', () => modal.classList.remove('active'));
+    modal.addEventListener('click', e => {
+        if (e.target === e.currentTarget && !running) modal.classList.remove('active');
     });
 
-    btnCancelExport.addEventListener('click', () => {
-        exportModal.classList.remove('active');
-    });
+    byId('btnConfirmExport').addEventListener('click', async () => {
+        if (!device || running) return;
+        const format = select('exportFormat') as ExportFormat;
+        const size = format === 'gif' ? Math.min(Number(select('exportSize')), 720) : Number(select('exportSize'));
+        const seconds = Number(select('exportSeconds'));
+        const animation = AllAnimationsList[styleNumber() % AllAnimationsList.length];
 
-    btnConfirmExport.addEventListener('click', () => {
-        (document.getElementById('modalActions') as HTMLElement).style.display = 'none';
-        document.getElementById('exportProgress')!.classList.add('active');
-        document.getElementById('exportText')!.textContent = 'Экспорт анимации...';
-
-        let progress = 0;
-        const interval = setInterval(() => {
-            progress += Math.random() * 15;
-            if (progress >= 100) {
-                progress = 100;
-                clearInterval(interval);
-                document.getElementById('exportText')!.textContent = '✅ GIF успешно экспортирован!';
-
-                const canvas = document.getElementById('editorCanvas') as HTMLCanvasElement;
-                if (canvas) {
-                    const link = document.createElement('a');
-                    link.download = 'animated-qr-' + state.selectedStyle + '.png';
-                    link.href = canvas.toDataURL();
-                    link.click();
-                }
-
-                setTimeout(() => {
-                    exportModal.classList.remove('active');
-                }, 2000);
-            }
-            (document.getElementById('exportProgressBar') as HTMLElement).style.width = progress + '%';
-        }, 200);
-    });
-
-    exportModal.addEventListener('click', (e) => {
-        if (e.target === e.currentTarget) {
-            exportModal.classList.remove('active');
+        running = true;
+        actions.style.display = 'none';
+        options.hidden = true;
+        progress.classList.add('active');
+        bar.style.width = '0%';
+        text.textContent = `Рендерим ${size}×${size}, ${seconds} с...`;
+        try {
+            const blob = await exportAnimation(device, animation, encodeQr(editorData()), editorSeed(), {
+                format,
+                size,
+                seconds,
+                fps: format === 'gif' ? 20 : 30,
+                onProgress: done => (bar.style.width = Math.round(done * 100) + '%'),
+            });
+            download(blob, `animated-qr-${styleNumber()}-${size}.${format}`);
+            text.textContent = `Готово: ${(blob.size / 1e6).toFixed(1)} МБ`;
+            setTimeout(() => modal.classList.remove('active'), 1500);
+        } catch (err) {
+            console.error('Export failed:', err);
+            text.textContent = 'Не получилось: ' + (err instanceof Error ? err.message : String(err));
+            actions.style.display = 'flex';
+        } finally {
+            running = false;
         }
     });
 }

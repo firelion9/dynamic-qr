@@ -1,14 +1,22 @@
-import { encodeQr } from '@/qr/encode';
+import { encodeQr, QrMatrix } from '@/qr/encode';
 import { device, FrameRenderer } from '@/gpuState';
-import { toRenderable } from '@/animation/utils';
+import { QrAnimation, toRenderable } from '@/animation/utils';
 import { AllAnimationsList } from '@/animation/registry';
-import { exportToGif } from '@/gif';
+import { download, exportAnimation } from '@/export';
 import { drawQr, fitCanvas } from '@/draw';
 import { screenActive, showScreen } from '@/navigation';
 import { state } from '@/state';
 import { setupEditor } from './editor';
 
-const galleryRenderers = new Map<number, { renderer: FrameRenderer; style: string }>();
+interface GalleryItem {
+    renderer: FrameRenderer;
+    style: string;
+    animation: QrAnimation<any>;
+    matrix: QrMatrix;
+    seed: number;
+}
+
+const galleryRenderers = new Map<number, GalleryItem>();
 
 export function initGallery(): void {
     const screen2 = document.getElementById('screen2') as HTMLElement;
@@ -50,13 +58,9 @@ export function initGallery(): void {
             btn.innerHTML = '<span>⏳</span>';
 
             try {
-                const gifBlob = await exportToGif(device, item.renderer, 30, 120, 120, 2.0);
-                const url = URL.createObjectURL(gifBlob);
-                const link = document.createElement('a');
-                link.download = `animated-qr-${item.style}.gif`;
-                link.href = url;
-                link.click();
-                URL.revokeObjectURL(url);
+                const options = { format: 'gif', size: 480, seconds: 5, fps: 20 } as const;
+                const blob = await exportAnimation(device, item.animation, item.matrix, item.seed, options);
+                download(blob, `animated-qr-${item.style}.gif`);
 
                 btn.innerHTML = '<span>✅</span>';
                 setTimeout(() => {
@@ -89,13 +93,14 @@ function populateGallery(): void {
         fitCanvas(canvas, 120);
         const context = canvas.getContext('webgpu');
         const animation = AllAnimationsList[i % AllAnimationsList.length];
-        const animationState = device ? animation.createState(device, matrix, Math.random(), format) : null;
+        const seed = Math.random();
+        const animationState = device ? animation.createState(device, matrix, seed, format) : null;
         if (device && animationState && context) {
             context.configure({ device, format, alphaMode: 'opaque' });
             const renderer = toRenderable(animation, animationState);
             const parentItem = container.closest('.gallery-item');
             const style = parentItem?.getAttribute('data-style') || `effect-${i}`;
-            galleryRenderers.set(i, { renderer, style });
+            galleryRenderers.set(i, { renderer, style, animation, matrix, seed });
 
             let prevTime = -1.0;
             const renderLoop = function (time: number) {

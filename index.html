@@ -158,7 +158,7 @@
                             <polyline points="7 10 12 15 17 10"/>
                             <line x1="12" y1="15" x2="12" y2="3"/>
                         </svg>
-                        Экспорт в GIF
+                        Экспорт
                     </button>
                 </div>
                 <div class="editor-body">
@@ -210,7 +210,29 @@
     <div class="modal-overlay" id="exportModal">
         <div class="modal">
             <h3>Экспорт анимации</h3>
-            <p id="exportText">QR-код экспортируется в формате GIF...</p>
+            <p id="exportText"></p>
+            <div class="export-options" id="exportOptions">
+                <label>Формат
+                    <select id="exportFormat">
+                        <option value="mp4">MP4</option>
+                        <option value="gif">GIF</option>
+                    </select>
+                </label>
+                <label>Размер
+                    <select id="exportSize">
+                        <option value="720">720 px</option>
+                        <option value="1080" selected>1080 px</option>
+                        <option value="2048">2048 px</option>
+                    </select>
+                </label>
+                <label>Длительность
+                    <select id="exportSeconds">
+                        <option value="5">5 с</option>
+                        <option value="10" selected>10 с</option>
+                        <option value="20">20 с</option>
+                    </select>
+                </label>
+            </div>
             <div class="export-progress" id="exportProgress">
                 <div class="export-progress-bar" id="exportProgressBar"></div>
             </div>
