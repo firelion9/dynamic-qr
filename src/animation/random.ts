@@ -8,3 +8,9 @@ export function random(seed: number): () => number {
         return ((t ^ (t >>> 14)) >>> 0) / 2 ** 32;
     };
 }
+
+export function hashSeed(text: string): number {
+    let h = 0x811c9dc5;
+    for (const ch of text) h = Math.imul(h ^ ch.codePointAt(0)!, 0x01000193);
+    return (h >>> 0) / 2 ** 32;
+}
