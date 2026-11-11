@@ -1,6 +1,8 @@
+import commonCode from '@/shaders/common.wgsl?raw';
 import shaderCode from '@/shaders/maze.wgsl?raw';
 import { QrMatrix } from '@/qr/encode';
-import { compileShader, QrAnimation } from './utils';
+import { AnimationOptions, compileShader, QrAnimation } from './utils';
+import { DEFAULT_PALETTE, Palette } from './palette';
 import { DEATH_TICKS, MazeGame, MazeOptions, POWER_TICKS } from './maze-game';
 
 const FRAME = 4;
@@ -18,16 +20,17 @@ export interface MazeAnimationState {
     pipeline: GPURenderPipeline;
     time: number;
     ticks: number;
+    palette: Palette;
 }
 
 function mazeAnimation(options: MazeOptions): QrAnimation<MazeAnimationState> {
     return {
-        createState: function (device: GPUDevice, data: QrMatrix, seed: number, format: GPUTextureFormat): MazeAnimationState {
+        createState: function (device: GPUDevice, data: QrMatrix, seed: number, format: GPUTextureFormat, animationOptions?: AnimationOptions): MazeAnimationState {
             const game = new MazeGame(data, seed, options);
             const size = data.length + 2 * FRAME;
             const grid = new Uint32Array(size * size);
             const gridBuffer = device.createBuffer({ size: grid.byteLength, usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST });
-            const uniformBuffer = device.createBuffer({ size: 16, usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST });
+            const uniformBuffer = device.createBuffer({ size: 48, usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST });
             const pipeline = device.createRenderPipeline({
                 layout: 'auto',
                 vertex: { module: shaderModule, entryPoint: 'vertShader' },
@@ -42,7 +45,8 @@ function mazeAnimation(options: MazeOptions): QrAnimation<MazeAnimationState> {
                 ],
             });
 
-            const state = { game, corridorDark: options.corridorDark, grid, gridBuffer, uniformBuffer, bindGroup, pipeline, time: 0, ticks: 0 };
+            const palette = animationOptions?.palette ?? DEFAULT_PALETTE;
+            const state = { game, corridorDark: options.corridorDark, grid, gridBuffer, uniformBuffer, bindGroup, pipeline, time: 0, ticks: 0, palette };
             updateGrid(device, state);
             return state;
         },
@@ -55,7 +59,8 @@ function mazeAnimation(options: MazeOptions): QrAnimation<MazeAnimationState> {
                 updateGrid(device, state);
             }
             const { game } = state;
-            const uniforms = [state.time, Math.sqrt(state.grid.length), game.powered / POWER_TICKS, game.hero.wait / DEATH_TICKS];
+            const { neon, accent } = state.palette;
+            const uniforms = [state.time, Math.sqrt(state.grid.length), game.powered / POWER_TICKS, game.hero.wait / DEATH_TICKS, ...neon, 0, ...accent, 0];
             device.queue.writeBuffer(state.uniformBuffer, 0, new Float32Array(uniforms));
 
             const encoder = device.createCommandEncoder();
@@ -70,7 +75,7 @@ function mazeAnimation(options: MazeOptions): QrAnimation<MazeAnimationState> {
         },
 
         init: async function (device: GPUDevice): Promise<void> {
-            shaderModule ??= await compileShader(device, shaderCode);
+            shaderModule ??= await compileShader(device, commonCode + shaderCode);
         },
     };
 }

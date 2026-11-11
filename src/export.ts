@@ -1,11 +1,11 @@
 import { GIFEncoder, quantize, applyPalette } from 'gifenc';
 import { ArrayBufferTarget, Muxer } from 'mp4-muxer';
-import type { QrAnimation } from '@/animation/utils';
+import type { AnimationOptions, QrAnimation } from '@/animation/utils';
 import type { QrMatrix } from '@/qr/encode';
 
 export type ExportFormat = 'mp4' | 'gif';
 
-export interface ExportOptions {
+export interface ExportOptions extends Partial<AnimationOptions> {
     format: ExportFormat;
     size: number;
     seconds: number;
@@ -27,7 +27,7 @@ export async function exportAnimation<S>(
 ): Promise<Blob> {
     const { size, fps } = options;
     const frames = Math.round(options.seconds * fps);
-    const state = animation.createState(device, matrix, seed, 'rgba8unorm');
+    const state = animation.createState(device, matrix, seed, 'rgba8unorm', options.palette && { palette: options.palette });
     const writer = options.format === 'mp4' ? await mp4Writer(size, fps) : gifWriter(size, fps);
     const reader = new FrameReader(device, size);
     try {

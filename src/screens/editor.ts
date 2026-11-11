@@ -1,7 +1,8 @@
-import { encodeQr } from '@/qr/encode';
+import { encodeQr, QrMatrix } from '@/qr/encode';
 import { device } from '@/gpuState';
 import { AllAnimationsList } from '@/animation/registry';
 import { hashSeed } from '@/animation/random';
+import { hexToRgb, Palette, PALETTES, rgbToHex } from '@/animation/palette';
 import { drawQr, fitCanvas } from '@/draw';
 import { download, ExportFormat, exportAnimation } from '@/export';
 import { screenActive, showScreen } from '@/navigation';
@@ -12,6 +13,7 @@ const PLAY_ICON = '<svg viewBox="0 0 24 24" fill="currentColor"><polygon points=
 const PAUSE_ICON = '<svg viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg>';
 
 const player = { runId: 0, time: 0, speed: 1, playing: true };
+let palette: Palette = PALETTES[0].palette;
 
 function byId<T extends HTMLElement = HTMLElement>(id: string): T {
     return document.getElementById(id) as T;
@@ -40,6 +42,8 @@ export function initEditor(): void {
     });
 
     byId('btnPlay').addEventListener('click', () => setPlaying(!player.playing));
+    byId('qrSize').addEventListener('change', () => populateEditor());
+    initPalette();
     byId('timelineSlider').addEventListener('input', e => {
         populateEditor((Number((e.target as HTMLInputElement).value) / 100) * TIMELINE_SECONDS);
     });
@@ -51,8 +55,40 @@ export function editorData(): string {
     return byId<HTMLInputElement>('messageInput').value.trim() || state.currentData;
 }
 
+export function editorMatrix(): QrMatrix {
+    const text = editorData();
+    const version = (encodeQr(text).length - 17) / 4;
+    return encodeQr(text, 'H', version + Number(byId<HTMLSelectElement>('qrSize').value));
+}
+
 export function editorSeed(): number {
     return hashSeed(byId<HTMLInputElement>('seedInput').value.trim());
+}
+
+function initPalette(): void {
+    const neon = byId<HTMLInputElement>('neonColor');
+    const accent = byId<HTMLInputElement>('accentColor');
+    const chips = PALETTES.map(({ name, palette: preset }) => {
+        const chip = document.createElement('button');
+        chip.type = 'button';
+        chip.className = 'palette-chip';
+        chip.innerHTML = `<i style="background:${rgbToHex(preset.neon)}"></i><i style="background:${rgbToHex(preset.accent)}"></i>${name}`;
+        chip.addEventListener('click', () => select(preset));
+        byId('paletteRow').appendChild(chip);
+        return { chip, preset };
+    });
+
+    const select = (next: Palette) => {
+        palette = next;
+        neon.value = rgbToHex(next.neon);
+        accent.value = rgbToHex(next.accent);
+        chips.forEach(({ chip, preset }) => chip.setAttribute('aria-pressed', String(preset === next)));
+        if (screenActive(3)) populateEditor(player.time);
+    };
+    const custom = () => select({ neon: hexToRgb(neon.value), accent: hexToRgb(accent.value) });
+    neon.addEventListener('input', custom);
+    accent.addEventListener('input', custom);
+    select(palette);
 }
 
 function setPlaying(playing: boolean): void {
@@ -70,7 +106,7 @@ function populateEditor(start = 0): void {
     const canvas = byId<HTMLCanvasElement>('editorCanvas');
     fitCanvas(canvas);
     const context = canvas.getContext('webgpu');
-    const matrix = encodeQr(editorData());
+    const matrix = editorMatrix();
     if (!device || !context) {
         drawQr(canvas, matrix);
         return;
@@ -79,7 +115,7 @@ function populateEditor(start = 0): void {
     const format = navigator.gpu.getPreferredCanvasFormat();
     const animation = AllAnimationsList[styleNumber() % AllAnimationsList.length];
     context.configure({ device, format, alphaMode: 'opaque' });
-    const animationState = animation.createState(device, matrix, editorSeed(), format);
+    const animationState = animation.createState(device, matrix, editorSeed(), format, { palette });
     animation.frame(device, context.getCurrentTexture().createView(), animationState, start);
     player.time = start;
     showTime(start);
@@ -142,7 +178,8 @@ function initExport(): void {
         bar.style.width = '0%';
         text.textContent = `Рендерим ${size}×${size}, ${seconds} с...`;
         try {
-            const blob = await exportAnimation(device, animation, encodeQr(editorData()), editorSeed(), {
+            const blob = await exportAnimation(device, animation, editorMatrix(), editorSeed(), {
+                palette,
                 format,
                 size,
                 seconds,

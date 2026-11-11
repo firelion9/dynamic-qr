@@ -1,10 +1,15 @@
 import { FrameRenderer } from "@/gpuState";
 import { QrMatrix } from "@/qr/encode";
 import { freeModules, qrLayout } from "@/qr/layout";
+import type { Palette } from "./palette";
+
+export interface AnimationOptions {
+    palette: Palette;
+}
 
 export interface QrAnimation<S> {
     init: (device: GPUDevice) => Promise<void>;
-    createState: (device: GPUDevice, data: QrMatrix, seed: number, format: GPUTextureFormat) => S;
+    createState: (device: GPUDevice, data: QrMatrix, seed: number, format: GPUTextureFormat, options?: AnimationOptions) => S;
     frame: (device: GPUDevice, outTexture: GPUTextureView, state: S, delta: number) => void;
 }
 

@@ -804,3 +804,58 @@ body {
     padding: 8px 10px;
     font: inherit;
 }
+
+.palette-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.palette-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 10px;
+    border-radius: 999px;
+    border: 1px solid #2a2a3e;
+    background: #12121f;
+    color: #c8c8d8;
+    font: inherit;
+    font-size: 13px;
+    cursor: pointer;
+}
+
+.palette-chip[aria-pressed="true"] {
+    border-color: #6c5ce7;
+    color: #ffffff;
+}
+
+.palette-chip i {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+}
+
+.color-row {
+    display: flex;
+    gap: 16px;
+    margin-top: 10px;
+}
+
+.color-pick {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 13px;
+    color: #9a9ab0;
+}
+
+.color-pick input {
+    width: 32px;
+    height: 24px;
+    padding: 0;
+    border: 1px solid #2a2a3e;
+    border-radius: 6px;
+    background: none;
+    cursor: pointer;
+}

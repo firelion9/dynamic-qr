@@ -1,6 +1,8 @@
+import commonCode from '@/shaders/common.wgsl?raw';
 import shaderCode from '@/shaders/snake.wgsl?raw';
 import { QrMatrix } from '@/qr/encode';
-import { compileShader, QrAnimation } from './utils';
+import { AnimationOptions, compileShader, QrAnimation } from './utils';
+import { DEFAULT_PALETTE, Palette } from './palette';
 import { SnakeGame, SnakeOptions } from './snake-game';
 
 const FRAME = 4;
@@ -18,11 +20,12 @@ export interface SnakeAnimationState {
     pipeline: GPURenderPipeline;
     time: number;
     ticks: number;
+    palette: Palette;
 }
 
 function snakeAnimation(options: SnakeOptions): QrAnimation<SnakeAnimationState> {
     return {
-        createState: function (device: GPUDevice, data: QrMatrix, seed: number, format: GPUTextureFormat): SnakeAnimationState {
+        createState: function (device: GPUDevice, data: QrMatrix, seed: number, format: GPUTextureFormat, animationOptions?: AnimationOptions): SnakeAnimationState {
             const game = new SnakeGame(data, seed, options);
             const size = data.length + 2 * FRAME;
             const base = new Uint32Array(size * size).fill(2 | 8);
@@ -33,7 +36,7 @@ function snakeAnimation(options: SnakeOptions): QrAnimation<SnakeAnimationState>
             );
 
             const gridBuffer = device.createBuffer({ size: base.byteLength, usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST });
-            const uniformBuffer = device.createBuffer({ size: 16, usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST });
+            const uniformBuffer = device.createBuffer({ size: 48, usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST });
             const pipeline = device.createRenderPipeline({
                 layout: 'auto',
                 vertex: { module: shaderModule, entryPoint: 'vertShader' },
@@ -48,7 +51,8 @@ function snakeAnimation(options: SnakeOptions): QrAnimation<SnakeAnimationState>
                 ],
             });
 
-            const state = { game, base, grid: new Uint32Array(base), gridBuffer, uniformBuffer, bindGroup, pipeline, time: 0, ticks: 0 };
+            const palette = animationOptions?.palette ?? DEFAULT_PALETTE;
+            const state = { game, base, grid: new Uint32Array(base), gridBuffer, uniformBuffer, bindGroup, pipeline, time: 0, ticks: 0, palette };
             updateGrid(device, state);
             return state;
         },
@@ -60,7 +64,9 @@ function snakeAnimation(options: SnakeOptions): QrAnimation<SnakeAnimationState>
                 for (; state.ticks < ticks; state.ticks++) state.game.tick();
                 updateGrid(device, state);
             }
-            device.queue.writeBuffer(state.uniformBuffer, 0, new Float32Array([state.time, Math.sqrt(state.grid.length), 0, 0]));
+            const { neon, accent } = state.palette;
+            const uniforms = [state.time, Math.sqrt(state.grid.length), 0, 0, ...neon, 0, ...accent, 0];
+            device.queue.writeBuffer(state.uniformBuffer, 0, new Float32Array(uniforms));
 
             const encoder = device.createCommandEncoder();
             const pass = encoder.beginRenderPass({
@@ -74,7 +80,7 @@ function snakeAnimation(options: SnakeOptions): QrAnimation<SnakeAnimationState>
         },
 
         init: async function (device: GPUDevice): Promise<void> {
-            shaderModule ??= await compileShader(device, shaderCode);
+            shaderModule ??= await compileShader(device, commonCode + shaderCode);
         },
     };
 }
