@@ -3,258 +3,158 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Анимированный QR-код</title>
+    <title>Dynamic QR</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700&family=JetBrains+Mono:wght@500&display=swap">
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <div class="app-container">
-        <!-- Screen 1: Input -->
-        <div class="screen active" id="screen1">
-            <div class="screen-title"><span class="title-text">Ввод данных</span><button class="btn-home" data-home>На главный</button></div>
-            <div class="window-card">
-                <div class="window-body">
-                    <div class="qr-icon">
-                        <svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
-                            <rect x="4" y="4" width="16" height="16" rx="2" stroke="#e0e0e0" stroke-width="2"/>
-                            <rect x="8" y="8" width="8" height="8" rx="1" fill="#e0e0e0"/>
-                            <rect x="28" y="4" width="16" height="16" rx="2" stroke="#e0e0e0" stroke-width="2"/>
-                            <rect x="32" y="8" width="8" height="8" rx="1" fill="#e0e0e0"/>
-                            <rect x="4" y="28" width="16" height="16" rx="2" stroke="#e0e0e0" stroke-width="2"/>
-                            <rect x="8" y="32" width="8" height="8" rx="1" fill="#e0e0e0"/>
-                            <rect x="28" y="28" width="6" height="6" rx="1" fill="#e0e0e0"/>
-                            <rect x="38" y="28" width="6" height="6" rx="1" fill="#e0e0e0"/>
-                            <rect x="28" y="38" width="6" height="6" rx="1" fill="#e0e0e0"/>
-                            <rect x="38" y="38" width="6" height="6" rx="1" fill="#e0e0e0"/>
-                        </svg>
-                    </div>
-                    <h1 class="main-heading">Создайте анимированный<br>QR-код</h1>
-                    <div class="input-group">
-                        <input type="text" id="urlInput" placeholder="Введите URL или текст...">
-                        <button class="btn-arrow" id="btnGenerate" title="Сгенерировать">→</button>
-                    </div>
-                    <div class="divider">
-                        <div class="divider-line"></div>
-                        <span class="divider-text">или</span>
-                        <div class="divider-line"></div>
-                    </div>
-                    <button class="btn-upload" id="btnUpload">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <rect x="3" y="3" width="18" height="18" rx="2"/>
-                            <circle cx="8.5" cy="8.5" r="1.5"/>
-                            <path d="M21 15l-5-5L5 21"/>
-                        </svg>
-                        Загрузить изображение
-                    </button>
-                    <input type="file" id="fileInput" accept="image/*">
-                </div>
-            </div>
+    <canvas id="bg" aria-hidden="true"></canvas>
+
+    <header class="topbar">
+        <div class="brand">
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+                <rect x="2" y="2" width="8" height="8" rx="1.5"/>
+                <rect x="14" y="2" width="8" height="8" rx="1.5"/>
+                <rect x="2" y="14" width="8" height="8" rx="1.5"/>
+                <rect x="14" y="14" width="3" height="3"/>
+                <rect x="19" y="19" width="3" height="3"/>
+            </svg>
+            dynamic qr
         </div>
+        <button class="btn btn-ghost btn-small" data-home style="display: none">На главную</button>
+    </header>
+
+    <main class="app">
+        <!-- Screen 1: Input -->
+        <section class="screen active" id="screen1">
+            <div class="hero">
+                <h1>Живой QR-код</h1>
+                <div class="input-row">
+                    <input type="text" id="urlInput" placeholder="Ссылка или текст" autocomplete="off">
+                    <button class="btn btn-primary" id="btnGenerate">Создать</button>
+                </div>
+                <button class="btn-link" id="btnUpload">или загрузить картинку с QR-кодом</button>
+                <input type="file" id="fileInput" accept="image/*" hidden>
+                <p class="error" id="inputError" hidden></p>
+            </div>
+        </section>
 
         <!-- Screen 2: Gallery -->
-        <div class="screen" id="screen2">
-            <div class="screen-title"><span class="title-text">Галерея анимаций</span></div>
-            <div class="window-card gallery-card">
-                <button class="editor-back gallery-back" id="btnGalleryBack">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <path d="M19 12H5M12 19l-7-7 7-7"/>
-                    </svg>
-                    <span>Назад</span>
+        <section class="screen" id="screen2">
+            <div class="page-head">
+                <button class="btn btn-ghost btn-icon" id="btnGalleryBack" aria-label="Назад">
+                    <svg viewBox="0 0 24 24"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
                 </button>
-                <div class="window-body">
-                    <h2 class="gallery-title">Анимации</h2>
-                    <p class="gallery-subtitle">Выберите эффект для вашего QR-кода</p>
-                    <div class="gallery-grid" id="galleryGrid">
-                        <div class="gallery-item" data-style="animation1">
-                            <button class="btn-gallery-export" title="Экспорт в GIF" data-export-idx="1">
-                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                    <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/>
-                                    <polyline points="7 10 12 15 17 10"/>
-                                    <line x1="12" y1="15" x2="12" y2="3"/>
-                                </svg>
-                                <span>GIF</span>
-                            </button>
-                            <div class="gallery-qr" id="galleryQr1"></div>
-                            <span class="style-badge">Анимация#1</span>
-                        </div>
-                        <div class="gallery-item" data-style="animation2">
-                            <button class="btn-gallery-export" title="Экспорт в GIF" data-export-idx="2">
-                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                    <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/>
-                                    <polyline points="7 10 12 15 17 10"/>
-                                    <line x1="12" y1="15" x2="12" y2="3"/>
-                                </svg>
-                                <span>GIF</span>
-                            </button>
-                            <div class="gallery-qr" id="galleryQr2"></div>
-                            <span class="style-badge">Анимация#2</span>
-                        </div>
-                        <div class="gallery-item" data-style="animation3">
-                            <button class="btn-gallery-export" title="Экспорт в GIF" data-export-idx="3">
-                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                    <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/>
-                                    <polyline points="7 10 12 15 17 10"/>
-                                    <line x1="12" y1="15" x2="12" y2="3"/>
-                                </svg>
-                                <span>GIF</span>
-                            </button>
-                            <div class="gallery-qr" id="galleryQr3"></div>
-                            <span class="style-badge">Анимация#3</span>
-                        </div>
-                        <div class="gallery-item" data-style="animation4">
-                            <button class="btn-gallery-export" title="Экспорт в GIF" data-export-idx="4">
-                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                    <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/>
-                                    <polyline points="7 10 12 15 17 10"/>
-                                    <line x1="12" y1="15" x2="12" y2="3"/>
-                                </svg>
-                                <span>GIF</span>
-                            </button>
-                            <div class="gallery-qr" id="galleryQr4"></div>
-                            <span class="style-badge">Анимация#4</span>
-                        </div>
-                        <div class="gallery-item" data-style="animation5">
-                            <button class="btn-gallery-export" title="Экспорт в GIF" data-export-idx="5">
-                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                    <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/>
-                                    <polyline points="7 10 12 15 17 10"/>
-                                    <line x1="12" y1="15" x2="12" y2="3"/>
-                                </svg>
-                                <span>GIF</span>
-                            </button>
-                            <div class="gallery-qr" id="galleryQr5"></div>
-                            <span class="style-badge">Анимация#5</span>
-                        </div>
-                        <div class="gallery-item" data-style="animation6">
-                            <button class="btn-gallery-export" title="Экспорт в GIF" data-export-idx="6">
-                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                    <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/>
-                                    <polyline points="7 10 12 15 17 10"/>
-                                    <line x1="12" y1="15" x2="12" y2="3"/>
-                                </svg>
-                                <span>GIF</span>
-                            </button>
-                            <div class="gallery-qr" id="galleryQr6"></div>
-                            <span class="style-badge">Анимация#6</span>
-                        </div>
-                    </div>
+                <div>
+                    <h2>Выберите анимацию</h2>
+                    <p class="muted">Превью уже на вашем тексте. Настроить цвета и выгрузить видео можно на следующем шаге.</p>
                 </div>
             </div>
-        </div>
+            <div class="anim-list" id="galleryGrid"></div>
+        </section>
 
         <!-- Screen 3: Editor -->
-        <div class="screen" id="screen3">
-            <div class="screen-title"><span class="title-text">Редактор анимации</span><button class="btn-home" data-home>На главный</button></div>
-            <div class="window-card editor-card">
-                <div class="editor-header">
-                    <button class="editor-back" id="btnBack">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <path d="M19 12H5M12 19l-7-7 7-7"/>
-                        </svg>
-                        <span id="backLabel">Неон</span>
-                    </button>
-                    <button class="btn-export" id="btnExport">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/>
-                            <polyline points="7 10 12 15 17 10"/>
-                            <line x1="12" y1="15" x2="12" y2="3"/>
-                        </svg>
-                        Экспорт
-                    </button>
+        <section class="screen" id="screen3">
+            <div class="page-head">
+                <button class="btn btn-ghost btn-icon" id="btnBack" aria-label="К списку анимаций">
+                    <svg viewBox="0 0 24 24"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+                </button>
+                <h2 id="backLabel">Анимация</h2>
+                <button class="btn btn-primary push-right" id="btnExport">
+                    <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>
+                    Экспорт
+                </button>
+            </div>
+
+            <div class="editor">
+                <div class="stage">
+                    <div class="preview" id="editorQr">
+                        <canvas id="editorCanvas" width="360" height="360"></canvas>
+                    </div>
+                    <div class="playback">
+                        <button class="btn btn-ghost btn-icon" id="btnPlay" aria-label="Пауза"></button>
+                        <input type="range" id="timelineSlider" min="0" max="100" value="0" step="0.1" aria-label="Время">
+                        <span class="mono" id="timelineTime">0:00</span>
+                    </div>
                 </div>
-                <div class="editor-body">
-                    <div class="editor-qr-display">
-                        <div class="qr-animated" id="editorQr">
-                            <canvas id="editorCanvas" width="220" height="220"></canvas>
+
+                <div class="panel">
+                    <div class="field">
+                        <label for="messageInput">Текст</label>
+                        <input type="text" id="messageInput">
+                    </div>
+                    <div class="field">
+                        <label for="seedInput">Seed</label>
+                        <div class="input-row">
+                            <input type="text" class="mono" id="seedInput" value="123456789">
+                            <button class="btn btn-ghost btn-icon" id="btnRefresh" aria-label="Случайный seed">
+                                <svg viewBox="0 0 24 24"><path d="M23 4v6h-6M1 20v-6h6"/><path d="M3.51 9a9 9 0 0114.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0020.49 15"/></svg>
+                            </button>
                         </div>
                     </div>
-                    <div class="editor-controls">
-                        <div class="control-group">
-                            <label>Сообщение</label>
-                            <input type="text" class="seed-input" id="messageInput">
+                    <div class="field">
+                        <span class="label">Палитра</span>
+                        <div class="palette-row" id="paletteRow"></div>
+                        <div class="color-row">
+                            <label class="color-pick"><input type="color" id="neonColor"> Стены</label>
+                            <label class="color-pick"><input type="color" id="accentColor"> Акцент</label>
                         </div>
-                        <div class="control-group">
-                            <label>Seed</label>
-                            <div class="seed-input-group">
-                                <input type="text" class="seed-input" id="seedInput" value="123456789">
-                                <button class="btn-refresh" id="btnRefresh" title="Случайный seed">
-                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                        <path d="M23 4v6h-6M1 20v-6h6"/>
-                                        <path d="M3.51 9a9 9 0 0114.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0020.49 15"/>
-                                    </svg>
-                                </button>
-                            </div>
-                        </div>
-                        <div class="control-group">
-                            <label>Палитра</label>
-                            <div class="palette-row" id="paletteRow"></div>
-                            <div class="color-row">
-                                <label class="color-pick">Стены <input type="color" id="neonColor"></label>
-                                <label class="color-pick">Акцент <input type="color" id="accentColor"></label>
-                            </div>
-                        </div>
-                        <div class="control-group">
+                    </div>
+                    <div class="field-grid">
+                        <div class="field">
                             <label for="qrSize">Размер QR</label>
-                            <select class="seed-input" id="qrSize">
+                            <select id="qrSize">
                                 <option value="0">Компактный</option>
                                 <option value="2">Средний</option>
                                 <option value="4">Большой</option>
                             </select>
                         </div>
-                        <div class="control-group">
-                            <label>Скорость</label>
-                            <div class="slider-group">
-                                <input type="range" id="speedSlider" min="0.1" max="3" step="0.1" value="1.0">
-                                <span class="slider-value" id="speedValue">1.0</span>
-                            </div>
-                        </div>
-                        <div class="timeline">
-                            <button class="btn-play" id="btnPlay">
-                                <svg viewBox="0 0 24 24" fill="currentColor">
-                                    <polygon points="5,3 19,12 5,21"/>
-                                </svg>
-                            </button>
-                            <input type="range" class="timeline-slider" id="timelineSlider" min="0" max="100" value="30">
-                            <span class="timeline-time" id="timelineTime">0:00</span>
+                        <div class="field">
+                            <label for="speedSlider">Скорость <span class="mono muted" id="speedValue">1.0</span></label>
+                            <input type="range" id="speedSlider" min="0.1" max="3" step="0.1" value="1.0">
                         </div>
                     </div>
                 </div>
             </div>
-        </div>
-    </div>
+        </section>
+    </main>
 
-    <!-- Export Modal -->
     <div class="modal-overlay" id="exportModal">
-        <div class="modal">
-            <h3>Экспорт анимации</h3>
-            <p id="exportText"></p>
-            <div class="export-options" id="exportOptions">
-                <label>Формат
+        <div class="modal" role="dialog" aria-labelledby="exportTitle">
+            <h3 id="exportTitle">Экспорт</h3>
+            <p class="muted" id="exportText"></p>
+            <div class="field-grid three" id="exportOptions">
+                <div class="field">
+                    <label for="exportFormat">Формат</label>
                     <select id="exportFormat">
                         <option value="mp4">MP4</option>
                         <option value="gif">GIF</option>
                     </select>
-                </label>
-                <label>Размер
+                </div>
+                <div class="field">
+                    <label for="exportSize">Размер</label>
                     <select id="exportSize">
                         <option value="720">720 px</option>
                         <option value="1080" selected>1080 px</option>
                         <option value="2048">2048 px</option>
                     </select>
-                </label>
-                <label>Длительность
+                </div>
+                <div class="field">
+                    <label for="exportSeconds">Длительность</label>
                     <select id="exportSeconds">
                         <option value="5">5 с</option>
                         <option value="10" selected>10 с</option>
                         <option value="20">20 с</option>
                     </select>
-                </label>
+                </div>
             </div>
             <div class="export-progress" id="exportProgress">
                 <div class="export-progress-bar" id="exportProgressBar"></div>
             </div>
             <div class="modal-actions" id="modalActions">
-                <button class="modal-btn modal-btn-secondary" id="btnCancelExport">Отмена</button>
-                <button class="modal-btn modal-btn-primary" id="btnConfirmExport">Экспортировать</button>
+                <button class="btn btn-ghost" id="btnCancelExport">Отмена</button>
+                <button class="btn btn-primary" id="btnConfirmExport">Экспортировать</button>
             </div>
         </div>
     </div>

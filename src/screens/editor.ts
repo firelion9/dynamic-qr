@@ -1,12 +1,12 @@
 import { encodeQr, QrMatrix } from '@/qr/encode';
 import { device } from '@/gpuState';
-import { AllAnimationsList } from '@/animation/registry';
+import { catalogEntry } from '@/animation/catalog';
 import { hashSeed } from '@/animation/random';
 import { hexToRgb, Palette, PALETTES, rgbToHex } from '@/animation/palette';
 import { drawQr, fitCanvas } from '@/draw';
 import { download, ExportFormat, exportAnimation } from '@/export';
 import { screenActive, showScreen } from '@/navigation';
-import { state, styleNumber } from '@/state';
+import { state } from '@/state';
 
 const TIMELINE_SECONDS = 30;
 const PLAY_ICON = '<svg viewBox="0 0 24 24" fill="currentColor"><polygon points="5,3 19,12 5,21"/></svg>';
@@ -20,7 +20,7 @@ function byId<T extends HTMLElement = HTMLElement>(id: string): T {
 }
 
 export function setupEditor(): void {
-    byId('backLabel').textContent = 'Анимация#' + styleNumber();
+    byId('backLabel').textContent = catalogEntry(state.selectedStyle).title;
     byId<HTMLInputElement>('messageInput').value = state.currentData;
     setPlaying(true);
     populateEditor();
@@ -113,7 +113,7 @@ function populateEditor(start = 0): void {
     }
 
     const format = navigator.gpu.getPreferredCanvasFormat();
-    const animation = AllAnimationsList[styleNumber() % AllAnimationsList.length];
+    const { animation } = catalogEntry(state.selectedStyle);
     context.configure({ device, format, alphaMode: 'opaque' });
     const animationState = animation.createState(device, matrix, editorSeed(), format, { palette });
     animation.frame(device, context.getCurrentTexture().createView(), animationState, start);
@@ -169,7 +169,7 @@ function initExport(): void {
         const format = select('exportFormat') as ExportFormat;
         const size = format === 'gif' ? Math.min(Number(select('exportSize')), 720) : Number(select('exportSize'));
         const seconds = Number(select('exportSeconds'));
-        const animation = AllAnimationsList[styleNumber() % AllAnimationsList.length];
+        const { animation } = catalogEntry(state.selectedStyle);
 
         running = true;
         actions.style.display = 'none';
@@ -186,7 +186,7 @@ function initExport(): void {
                 fps: format === 'gif' ? 20 : 30,
                 onProgress: done => (bar.style.width = Math.round(done * 100) + '%'),
             });
-            download(blob, `animated-qr-${styleNumber()}-${size}.${format}`);
+            download(blob, `qr-${state.selectedStyle}-${size}.${format}`);
             text.textContent = `Готово: ${(blob.size / 1e6).toFixed(1)} МБ`;
             setTimeout(() => modal.classList.remove('active'), 1500);
         } catch (err) {
