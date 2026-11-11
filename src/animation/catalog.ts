@@ -17,14 +17,14 @@ const INFO: [string, string, string][] = [
     ['flipping', 'Мерцание', 'Случайные модули на мгновение меняют цвет.'],
     ['static', 'Статика', 'Обычный QR без анимации, для сравнения.'],
     ['breath', 'Дыхание', 'Вы знали, что модули QR-кода - это живые существа?'],
-    ['waves', 'Волны', 'Волны'],
+    ['waves', 'Волны', 'Для ценителей музыки.'],
 ];
 
 export const CATALOG: CatalogEntry[] = INFO.filter(([key]) => AllAnimations.has(key)).map(([key, title, description]) => ({
     key,
     title,
     description,
-    themed: key.startsWith('snake') || key.startsWith('maze'),
+    themed: key.startsWith('snake') || key.startsWith('maze') || key == 'waves',
     animation: AllAnimations.get(key)!,
 }));
 

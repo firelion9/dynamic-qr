@@ -9,6 +9,12 @@ struct Uniforms {
 
 @group(0) @binding(0) var<uniform> uniforms: Uniforms;
 
+const N_COLORS: u32 = 4;
+struct Colors {
+    waves: array<vec3f, N_COLORS>
+};
+@group(1) @binding(0) var<uniform> colors: Colors;
+
 struct VertexInput {
     @location(0) position: vec2<f32>,
     @location(1) qrPosition: vec2<u32>,
@@ -17,14 +23,11 @@ struct VertexInput {
 struct VertexOutput {
     @builtin(position) position: vec4<f32>,
     @location(0) primary: vec3<f32>,
-    @location(1) secondary: vec3<f32>,
-    @location(2) center: vec2<f32>,
     @location(3) pos: vec2<f32>,
 };
 
 const PERIOD = 3.5;
 const PI = 3.14159265;
-const neon = vec3f(0.7, 0.3, 0.6);
 
 fn rand(point: vec2<f32>, time: f32, salt: f32) -> f32 {
     let x = fract(sin(dot(vec3<f32>(point, salt), vec3<f32>(42.4242, 1337.4242, 3301.1999))) * 1453.32143 + time * 67.6767);
@@ -42,12 +45,9 @@ fn vertShader(input: VertexInput) -> VertexOutput {
     out.pos = vec2<f32>(input.position.x * 2 - 1, 1 - input.position.y * 2);
     if (((input.flags & 1) == 1)) { 
         out.primary = uniforms.dark; 
-        out.secondary = neon;
     } else {
         out.primary = uniforms.light;
-        out.secondary = neon;
     }
-    out.center = (vec2<f32>(input.qrPosition) + 0.5) / uniforms.size * vec2<f32>(2, -2) + vec2<f32>(-1, 1);
     return out;
 }
 
@@ -73,26 +73,30 @@ fn waveDst(pos: vec2f, idx: f32) -> f32 {
     return distance(pos.xy, center) / waveEnd(idx) - waveProgress(idx);
 }
 
-fn waveAt(w: vec3f, pos: vec2f, idx: f32) -> vec4f {
+fn waveColor(idx: f32) -> vec3f {
+    return colors.waves[u32(idx) % N_COLORS];
+}
+
+fn waveAt(pos: vec2f, idx: f32) -> vec4f {
     let radius = waveRadius(idx);
     let dst = waveDst(pos, idx);
     let spike = smoothstep(-radius, radius, dst);
     var alpha: f32 = sin(spike * PI) / 2;
-    return vec4f(w, alpha);
+    return vec4f(waveColor(idx), alpha);
 }
 
-fn applyWave(base: vec4f, w: vec3f, pos: vec2f, idx: f32) -> vec4f {
-    let wave = waveAt(w, pos, idx);
+fn applyWave(base: vec4f, pos: vec2f, idx: f32) -> vec4f {
+    let wave = waveAt(pos, idx);
     return mix(base, vec4f(wave.rgb, 1.0), wave.a);
 }
 
 @fragment
 fn fragmentShader(in: VertexOutput) -> @location(0) vec4f {
     var res = vec4f(in.primary, 1.0);
-    res = applyWave(res, in.secondary, in.pos, 0);
-    res = applyWave(res, in.secondary, in.pos, 1);
-    res = applyWave(res, in.secondary, in.pos, 2);
-    res = applyWave(res, in.secondary, in.pos, 3);
+    res = applyWave(res, in.pos, 0);
+    res = applyWave(res, in.pos, 1);
+    res = applyWave(res, in.pos, 2);
+    res = applyWave(res, in.pos, 3);
 
     return res;
 }

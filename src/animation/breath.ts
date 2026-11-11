@@ -1,13 +1,13 @@
 import shaderCode from '@/shaders/breath.wgsl?raw';
 import { QrMatrix } from "@/qr/encode";
 import { AnimationOptions, compileShader, doDrawQrData, QrAnimation, QrDataBuffers, qrDataToBuffers, updateQrDataUniforms } from "./utils";
-import { expandPalette, readableColors } from './palette';
+import { readableColors } from './palette';
 
 let shaderModule: GPUShaderModule;
 
 export const BreathAnimation: QrAnimation<BreathAnimationState> = {
     createState: function (device: GPUDevice, data: QrMatrix, seed: number, format: GPUTextureFormat, options?: AnimationOptions): BreathAnimationState {
-        let buffers = qrDataToBuffers(device, data, seed, expandPalette(readableColors(options?.palette)));
+        let buffers = qrDataToBuffers(device, data, seed, readableColors(options?.palette));
 
         const pipelineLayout = device.createPipelineLayout({
             bindGroupLayouts: [buffers.uniformLayout],
