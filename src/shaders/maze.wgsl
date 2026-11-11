@@ -5,6 +5,8 @@ struct Uniforms {
     death: f32,
     neon: vec3f,
     accent: vec3f,
+    dark: vec3f,
+    light: vec3f,
 };
 
 @group(0) @binding(0) var<uniform> u: Uniforms;

@@ -5,6 +5,7 @@ export interface CatalogEntry {
     key: string;
     title: string;
     description: string;
+    themed: boolean;
     animation: QrAnimation<any>;
 }
 
@@ -21,6 +22,7 @@ export const CATALOG: CatalogEntry[] = INFO.filter(([key]) => AllAnimations.has(
     key,
     title,
     description,
+    themed: key.startsWith('snake') || key.startsWith('maze'),
     animation: AllAnimations.get(key)!,
 }));
 

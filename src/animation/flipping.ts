@@ -1,12 +1,13 @@
 import shaderCode from '@/shaders/flipping.wgsl?raw';
 import { QrMatrix } from "@/qr/encode";
-import { compileShader, doDrawQrData, QrAnimation, QrDataBuffers, qrDataToBuffers, updateQrDataUniforms } from "./utils";
+import { AnimationOptions, compileShader, doDrawQrData, QrAnimation, QrDataBuffers, qrDataToBuffers, updateQrDataUniforms } from "./utils";
+import { readableColors } from "./palette";
 
 let shaderModule: GPUShaderModule;
 
 export const FlippingAnimation: QrAnimation<FlippingAnimationState> = {
-    createState: function (device: GPUDevice, data: QrMatrix, seed: number, format: GPUTextureFormat): FlippingAnimationState {
-        let buffers = qrDataToBuffers(device, data, seed);
+    createState: function (device: GPUDevice, data: QrMatrix, seed: number, format: GPUTextureFormat, options?: AnimationOptions): FlippingAnimationState {
+        let buffers = qrDataToBuffers(device, data, seed, readableColors(options?.palette));
 
         const pipelineLayout = device.createPipelineLayout({
             bindGroupLayouts: [buffers.uniformLayout],

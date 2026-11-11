@@ -417,7 +417,18 @@ input[type='range'] {
 
 .color-row {
     display: flex;
-    gap: 18px;
+    flex-wrap: wrap;
+    gap: 10px 18px;
+}
+
+.color-pick[hidden] {
+    display: none;
+}
+
+.hint {
+    margin: 0;
+    font-size: 13px;
+    color: var(--muted);
 }
 
 .color-pick {

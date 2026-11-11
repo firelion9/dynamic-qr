@@ -45,7 +45,7 @@ fn forward(s: vec2i, d: u32) -> vec2i {
 }
 
 fn background() -> vec3f {
-    return u.neon * 0.03 + vec3f(0.01);
+    return u.dark;
 }
 
 fn ground(c: vec2i, s: vec2i, detailed: bool) -> vec3f {
@@ -57,8 +57,8 @@ fn ground(c: vec2i, s: vec2i, detailed: bool) -> vec3f {
 }
 
 fn wall(c: vec2i, s: vec2i, detailed: bool) -> vec4f {
-    let tube = mix(u.neon, vec3f(1.0), 0.55);
-    let fill = mix(u.neon, vec3f(1.0), 0.7);
+    let tube = mix(u.neon, u.light, 0.8);
+    let fill = u.light;
     if (!detailed) { return vec4f(tube, 0.0); }
     let up = open(cell(c + vec2i(0, -1)));
     let down = open(cell(c + vec2i(0, 1)));
@@ -79,7 +79,7 @@ fn wall(c: vec2i, s: vec2i, detailed: bool) -> vec4f {
     if (open(cell(c + vec2i(-1, 1)))) { d = min(d, max(s.x, 6 - s.y)); }
     if (open(cell(c + vec2i(1, 1)))) { d = min(d, max(6 - s.x, 6 - s.y)); }
 
-    if (d == 1) { return vec4f(mix(u.neon, vec3f(1.0), 0.9), 0.0); }
+    if (d == 1) { return vec4f(mix(u.light, vec3f(1.0), 0.67), 0.0); }
     if (d <= 2) { return vec4f(tube, 0.0); }
     return vec4f(fill, 0.0);
 }

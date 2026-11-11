@@ -2,7 +2,7 @@ import { encodeQr, QrMatrix } from '@/qr/encode';
 import { device } from '@/gpuState';
 import { catalogEntry } from '@/animation/catalog';
 import { hashSeed } from '@/animation/random';
-import { hexToRgb, Palette, PALETTES, rgbToHex } from '@/animation/palette';
+import { hexToRgb, Palette, PALETTES, readableDark, readableLight, rgbToHex } from '@/animation/palette';
 import { drawQr, fitCanvas } from '@/draw';
 import { download, ExportFormat, exportAnimation } from '@/export';
 import { screenActive, showScreen } from '@/navigation';
@@ -20,7 +20,9 @@ function byId<T extends HTMLElement = HTMLElement>(id: string): T {
 }
 
 export function setupEditor(): void {
-    byId('backLabel').textContent = catalogEntry(state.selectedStyle).title;
+    const entry = catalogEntry(state.selectedStyle);
+    byId('backLabel').textContent = entry.title;
+    document.querySelectorAll<HTMLElement>('[data-themed]').forEach(el => (el.hidden = !entry.themed));
     byId<HTMLInputElement>('messageInput').value = state.currentData;
     setPlaying(true);
     populateEditor();
@@ -66,8 +68,13 @@ export function editorSeed(): number {
 }
 
 function initPalette(): void {
-    const neon = byId<HTMLInputElement>('neonColor');
-    const accent = byId<HTMLInputElement>('accentColor');
+    const inputs = {
+        dark: byId<HTMLInputElement>('darkColor'),
+        light: byId<HTMLInputElement>('lightColor'),
+        neon: byId<HTMLInputElement>('neonColor'),
+        accent: byId<HTMLInputElement>('accentColor'),
+    };
+    const hint = byId('colorHint');
     const chips = PALETTES.map(({ name, palette: preset }) => {
         const chip = document.createElement('button');
         chip.type = 'button';
@@ -80,14 +87,33 @@ function initPalette(): void {
 
     const select = (next: Palette) => {
         palette = next;
-        neon.value = rgbToHex(next.neon);
-        accent.value = rgbToHex(next.accent);
         chips.forEach(({ chip, preset }) => chip.setAttribute('aria-pressed', String(preset === next)));
         if (screenActive(3)) populateEditor(player.time);
     };
-    const custom = () => select({ neon: hexToRgb(neon.value), accent: hexToRgb(accent.value) });
-    neon.addEventListener('input', custom);
-    accent.addEventListener('input', custom);
+    const show = (next: Palette) => {
+        (Object.keys(inputs) as (keyof Palette)[]).forEach(key => (inputs[key].value = rgbToHex(next[key])));
+    };
+    const fromInputs = (): Palette => {
+        const read = (key: keyof Palette) => hexToRgb(inputs[key].value);
+        return { dark: readableDark(read('dark')), light: readableLight(read('light')), neon: read('neon'), accent: read('accent') };
+    };
+
+    for (const input of Object.values(inputs)) {
+        input.addEventListener('input', () => select(fromInputs()));
+        input.addEventListener('change', () => {
+            const next = fromInputs();
+            hint.hidden = rgbToHex(next.dark) === inputs.dark.value && rgbToHex(next.light) === inputs.light.value;
+            show(next);
+            select(next);
+        });
+    }
+    for (const { chip, preset } of chips) {
+        chip.addEventListener('click', () => {
+            hint.hidden = true;
+            show(preset);
+        });
+    }
+    show(palette);
     select(palette);
 }
 

@@ -30,7 +30,7 @@ function mazeAnimation(options: MazeOptions): QrAnimation<MazeAnimationState> {
             const size = data.length + 2 * FRAME;
             const grid = new Uint32Array(size * size);
             const gridBuffer = device.createBuffer({ size: grid.byteLength, usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST });
-            const uniformBuffer = device.createBuffer({ size: 48, usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST });
+            const uniformBuffer = device.createBuffer({ size: 80, usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST });
             const pipeline = device.createRenderPipeline({
                 layout: 'auto',
                 vertex: { module: shaderModule, entryPoint: 'vertShader' },
@@ -59,8 +59,8 @@ function mazeAnimation(options: MazeOptions): QrAnimation<MazeAnimationState> {
                 updateGrid(device, state);
             }
             const { game } = state;
-            const { neon, accent } = state.palette;
-            const uniforms = [state.time, Math.sqrt(state.grid.length), game.powered / POWER_TICKS, game.hero.wait / DEATH_TICKS, ...neon, 0, ...accent, 0];
+            const { neon, accent, dark, light } = state.palette;
+            const uniforms = [state.time, Math.sqrt(state.grid.length), game.powered / POWER_TICKS, game.hero.wait / DEATH_TICKS, ...neon, 0, ...accent, 0, ...dark, 0, ...light, 0];
             device.queue.writeBuffer(state.uniformBuffer, 0, new Float32Array(uniforms));
 
             const encoder = device.createCommandEncoder();
