@@ -1,14 +1,16 @@
 import shaderCode from '@/shaders/static.wgsl?raw';
 import { QrMatrix } from "@/qr/encode";
-import { compileShader, doDrawQrData, QrAnimation, QrDataBuffers, qrDataToBuffers } from "./utils";
+import { AnimationOptions, compileShader, doDrawQrData, QrAnimation, QrDataBuffers, qrDataToBuffers, updateQrDataUniforms } from "./utils";
+import { readableColors } from "./palette";
 
 let shaderModule: GPUShaderModule;
 
 export const StaticAnimation: QrAnimation<StaticAnimationState> = {
-    createState: function (device: GPUDevice, data: QrMatrix, seed: number, format: GPUTextureFormat): StaticAnimationState {
-        let buffers = qrDataToBuffers(device, data, seed);
+    createState: function (device: GPUDevice, data: QrMatrix, seed: number, format: GPUTextureFormat, options?: AnimationOptions): StaticAnimationState {
+        let buffers = qrDataToBuffers(device, data, seed, readableColors(options?.palette));
+        updateQrDataUniforms(buffers, device, 0);
         const pipeline = device.createRenderPipeline({
-            layout: "auto",
+            layout: device.createPipelineLayout({ bindGroupLayouts: [buffers.uniformLayout] }),
             vertex: { module: shaderModule, entryPoint: "vertShader", buffers: [buffers.positionsBuffer.layout, buffers.qrAttributesBuffer.layout] },
             fragment: { module: shaderModule, entryPoint: "fragmentShader", targets: [{ format }] },
             primitive: { topology: "triangle-list" },

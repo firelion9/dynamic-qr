@@ -1,3 +1,12 @@
+struct Uniforms {
+    time: f32,
+    seed: f32,
+    dark: vec3f,
+    light: vec3f,
+};
+
+@group(0) @binding(0) var<uniform> uniforms: Uniforms;
+
 struct VertexInput {
     @location(0) position: vec2<f32>,
     @location(1) qrPosition: vec2<u32>,
@@ -12,8 +21,8 @@ struct VertexOutput {
 fn vertShader(input: VertexInput) -> VertexOutput {
     var out: VertexOutput;
     out.position = vec4f(input.position.x * 2 - 1, 1 - input.position.y * 2, 0.0, 1.0);
-    if ((input.flags & 1) == 1) { out.color = vec3f(0.0, 0.0, 0.0); }
-    else { out.color = vec3f(1.0, 1.0, 1.0); }
+    if ((input.flags & 1) == 1) { out.color = uniforms.dark; }
+    else { out.color = uniforms.light; }
     return out;
 }
 

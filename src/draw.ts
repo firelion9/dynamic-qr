@@ -16,3 +16,9 @@ export function drawQr(canvas: HTMLCanvasElement, matrix: QrMatrix, color = '#00
         }
     }
 }
+
+export function fitCanvas(canvas: HTMLCanvasElement, fallback = canvas.width): void {
+    const side = Math.round((canvas.clientWidth || fallback) * devicePixelRatio);
+    canvas.width = side;
+    canvas.height = side;
+}

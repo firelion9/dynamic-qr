@@ -1,10 +1,15 @@
 import { FrameRenderer } from "@/gpuState";
 import { QrMatrix } from "@/qr/encode";
 import { freeModules, qrLayout } from "@/qr/layout";
+import { MONOCHROME, type Palette } from "./palette";
+
+export interface AnimationOptions {
+    palette: Palette;
+}
 
 export interface QrAnimation<S> {
     init: (device: GPUDevice) => Promise<void>;
-    createState: (device: GPUDevice, data: QrMatrix, seed: number, format: GPUTextureFormat) => S;
+    createState: (device: GPUDevice, data: QrMatrix, seed: number, format: GPUTextureFormat, options?: AnimationOptions) => S;
     frame: (device: GPUDevice, outTexture: GPUTextureView, state: S, delta: number) => void;
 }
 
@@ -22,11 +27,13 @@ export interface QrDataBuffers {
     uniformLayout: GPUBindGroupLayout;
     time: number;
     seed: number;
+    colors: Pick<Palette, 'dark' | 'light'>;
 }
 
 export function updateQrDataUniforms (data: QrDataBuffers, device: GPUDevice, delta: number) {
     data.time += delta;
-    device.queue.writeBuffer(data.uniformBuffer, 0, new Float32Array([data.time, data.seed, 0, 0]));
+    const { dark, light } = data.colors;
+    device.queue.writeBuffer(data.uniformBuffer, 0, new Float32Array([data.time, data.seed, 0, 0, ...dark, 0, ...light, 0]));
 }
 
 export function doDrawQrData (data: QrDataBuffers, pass: GPURenderPassEncoder) {
@@ -60,7 +67,7 @@ export function toRenderable<S>(animation: QrAnimation<S>, state: S): FrameRende
     }
 }
 
-export function qrDataToBuffers(device: GPUDevice, data: QrMatrix, seed: number, frame = 4): QrDataBuffers {
+export function qrDataToBuffers(device: GPUDevice, data: QrMatrix, seed: number, colors = MONOCHROME, frame = 4): QrDataBuffers {
     const n = data.length + 2 * frame;
     const vertexCount = n * n * 2 * 3;
     const moduleSize = 1.0 / n;
@@ -143,7 +150,7 @@ export function qrDataToBuffers(device: GPUDevice, data: QrMatrix, seed: number,
         }],
     });
     const uniformBuffer = device.createBuffer({
-        size: 16,
+        size: 48,
         usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST,
     });
 
@@ -162,5 +169,6 @@ export function qrDataToBuffers(device: GPUDevice, data: QrMatrix, seed: number,
         uniformLayout: uniformLayout,
         time: 0.0,
         seed: seed,
+        colors,
     };
 }

@@ -1,6 +1,8 @@
 struct Uniforms {
     time: f32,
     seed: f32,
+    dark: vec3f,
+    light: vec3f,
 };
 
 @group(0) @binding(0) var<uniform> uniforms: Uniforms;
@@ -25,8 +27,8 @@ fn vertShader(input: VertexInput) -> VertexOutput {
     let shouldFlip = (input.flags & 2) == 0 && rand(vec2<f32>(input.qrPosition), sin(uniforms.time * 0.0001), uniforms.seed) < 0.007;
     var out: VertexOutput;
     out.position = vec4f(input.position.x * 2 - 1, 1 - input.position.y * 2, 0.0, 1.0);
-    if (((input.flags & 1) == 1) != shouldFlip) { out.color = vec3f(0.0, 0.0, 0.0); }
-    else { out.color = vec3f(1.0, 1.0, 1.0); }
+    if (((input.flags & 1) == 1) != shouldFlip) { out.color = uniforms.dark; }
+    else { out.color = uniforms.light; }
     return out;
 }
 
