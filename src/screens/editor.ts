@@ -2,7 +2,7 @@ import { encodeQr } from '@/qr/encode';
 import { device } from '@/gpuState';
 import { AllAnimationsList } from '@/animation/registry';
 import { hashSeed } from '@/animation/random';
-import { drawQr } from '@/draw';
+import { drawQr, fitCanvas } from '@/draw';
 import { screenActive, showScreen } from '@/navigation';
 import { state, styleNumber } from '@/state';
 
@@ -67,6 +67,7 @@ function showTime(seconds: number): void {
 
 function populateEditor(start = 0): void {
     const canvas = byId<HTMLCanvasElement>('editorCanvas');
+    fitCanvas(canvas);
     const context = canvas.getContext('webgpu');
     const matrix = encodeQr(editorData());
     if (!device || !context) {
