@@ -18,6 +18,7 @@ const INFO: [string, string, string][] = [
     ['static', 'Статика', 'Обычный QR без анимации, для сравнения.'],
     ['breath', 'Дыхание', 'Вы знали, что модули QR-кода - это живые существа?'],
     ['waves', 'Волны', 'Для ценителей музыки.'],
+    ['wave', 'Волна', 'От центра расходится пиксельная волна.'],
 ];
 
 export const CATALOG: CatalogEntry[] = INFO.filter(([key]) => AllAnimations.has(key)).map(([key, title, description]) => ({
