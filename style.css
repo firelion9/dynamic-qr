@@ -250,7 +250,7 @@ body {
     transition: all 0.3s;
     position: relative;
     overflow: hidden;
-    padding: 10px 4px 4px;
+    padding: 28px 12px 22px;
 }
 
 .gallery-item:hover {
