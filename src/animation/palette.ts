@@ -35,12 +35,8 @@ export function readableDark(c: Rgb): Rgb {
     return l <= MAX_DARK ? c : (c.map(v => (v * MAX_DARK) / l) as Rgb);
 }
 
-export function readableColors(palette?: Palette): Pick<Palette, 'dark' | 'light'> {
-    return palette ? { dark: readableDark(palette.dark), light: readableLight(palette.light) } : DEFAULT_PALETTE;
-}
-
-export function expandPalette(palette: Pick<Palette, 'dark' | 'light'>): Palette {
-    return { ...palette, neon: palette.light, accent: palette.dark };
+export function readableColors(palette?: Palette): Palette {
+    return palette ? { dark: readableDark(palette.dark), light: readableLight(palette.light), neon: palette.neon, accent: palette.accent } : DEFAULT_PALETTE;
 }
 
 export function readableLight(c: Rgb): Rgb {
