@@ -1,7 +1,4 @@
 import { setGPUState } from '@/gpuState';
-import { encodeQr } from './qr/encode';
-import { toRenderable } from './animation/utils';
-import { FlippingAnimation } from './animation/flipping';
 import { AllAnimationsList } from './animation/registry';
 
 export async function initWebGPU() {
