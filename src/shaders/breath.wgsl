@@ -21,6 +21,7 @@ struct VertexOutput {
     @location(1) secondary: vec3<f32>,
     @location(2) center: vec2<f32>,
     @location(3) pos: vec2<f32>,
+    @interpolate(flat) @location(4) flags: u32,
 };
 
 fn rand(point: vec2<f32>, time: f32, salt: f32) -> f32 {
@@ -41,13 +42,19 @@ fn vertShader(input: VertexInput) -> VertexOutput {
         out.secondary = uniforms.light; 
     }
     out.center = (vec2<f32>(input.qrPosition) + 0.5) / uniforms.size * vec2<f32>(2, -2) + vec2<f32>(-1, 1);
+    out.flags = input.flags;
     return out;
 }
 
 @fragment
 fn fragmentShader(in: VertexOutput) -> @location(0) vec4f {
-    let p = rand(in.center, uniforms.time * 0.01, uniforms.seed) * 0.25;
-    let q = rand(in.center, 0.0, uniforms.seed + 100) * 0.75;
+    var p = 0.3;
+    var q = 0.75;
+    if ((in.flags & 2) == 0) {
+        p = rand(in.center, uniforms.time * 0.01, uniforms.seed) * 0.25;
+        q = rand(in.center, 0.0, uniforms.seed + 100) * 0.75;
+    }
+
     let dir = (in.pos.xy - in.center.xy) * uniforms.size;
     let s = 1.25 + q;
     let dst = pow(dot(pow(abs(dir), vec2f(s, s)), vec2f(1, 1)), 1 / s);
