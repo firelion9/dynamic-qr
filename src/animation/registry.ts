@@ -1,5 +1,6 @@
 import { FlippingAnimation } from "./flipping";
 import { MazeAnimation } from "./maze";
+import { MatrixAnimation } from "./matrix";
 import { SnakeAnimation, SnakeDuelAnimation } from "./snake";
 import { BreathAnimation } from "./breath";
 import { WaveAnimation } from "./wave";
@@ -16,6 +17,7 @@ export const AllAnimations = new Map<string, QrAnimation<any>>([
     ["breath", BreathAnimation],
     ["waves", WavesAnimation],
     ["wave", WaveAnimation],
+    ["matrix", MatrixAnimation],
 ]);
 
 export const AllAnimationsList = [...AllAnimations.values()];
