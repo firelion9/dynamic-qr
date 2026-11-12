@@ -3,6 +3,8 @@ import { device } from '@/gpuState';
 import { CATALOG, CatalogEntry } from '@/animation/catalog';
 import { drawQr, fitCanvas } from '@/draw';
 import { screenActive, showScreen } from '@/navigation';
+import { readableColors, rgbToHex } from '@/animation/palette';
+import { settings } from '@/settings';
 import { state } from '@/state';
 import { setupEditor } from './editor';
 
@@ -58,11 +60,12 @@ function populateGallery(): void {
 
         const context = device && canvas.getContext('webgpu');
         if (!context || !format) {
-            drawQr(canvas, matrix);
+            const { dark, light } = readableColors(settings.palette, settings.inverted);
+            drawQr(canvas, matrix, rgbToHex(dark), rgbToHex(light));
             continue;
         }
         context.configure({ device, format, alphaMode: 'opaque' });
-        const animationState = entry.animation.createState(device, matrix, seed, format);
+        const animationState = entry.animation.createState(device, matrix, seed, format, { palette: settings.palette, inverted: settings.inverted });
         let prev = -1;
         const loop = (now: number) => {
             if (id !== runId || !screenActive(2)) return;
