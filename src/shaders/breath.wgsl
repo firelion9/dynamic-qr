@@ -48,12 +48,10 @@ fn vertShader(input: VertexInput) -> VertexOutput {
 
 @fragment
 fn fragmentShader(in: VertexOutput) -> @location(0) vec4f {
-    var p = 0.3;
-    var q = 0.75;
-    if ((in.flags & 2) == 0) {
-        p = rand(in.center, uniforms.time * 0.01, uniforms.seed) * 0.25;
-        q = rand(in.center, 0.0, uniforms.seed + 100) * 0.75;
-    }
+    // Scanners look for solid finder and timing patterns, so reserved modules stay square.
+    if ((in.flags & 2) != 0) { return vec4f(in.primary, 1.0); }
+    let p = rand(in.center, uniforms.time * 0.01, uniforms.seed) * 0.25;
+    let q = rand(in.center, 0.0, uniforms.seed + 100) * 0.75;
 
     let dir = (in.pos.xy - in.center.xy) * uniforms.size;
     let s = 1.25 + q;
