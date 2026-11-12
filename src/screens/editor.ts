@@ -3,7 +3,7 @@ import { device } from '@/gpuState';
 import { catalogEntry } from '@/animation/catalog';
 import { hashSeed } from '@/animation/random';
 import { hexToRgb, Palette, PALETTES, readableDark, readableLight, rgbToHex } from '@/animation/palette';
-import { drawQr, fitCanvas } from '@/draw';
+import { drawQr, fitCanvas, freshCanvas } from '@/draw';
 import { download, ExportFormat, exportAnimation } from '@/export';
 import { screenActive, showScreen } from '@/navigation';
 import { state } from '@/state';
@@ -129,12 +129,12 @@ function showTime(seconds: number): void {
 }
 
 function populateEditor(start = 0): void {
-    const canvas = byId<HTMLCanvasElement>('editorCanvas');
+    const canvas = freshCanvas(byId<HTMLCanvasElement>('editorCanvas'));
     fitCanvas(canvas);
-    const context = canvas.getContext('webgpu');
     const matrix = editorMatrix();
-    if (!device || !context) {
-        drawQr(canvas, matrix);
+    const context = device && canvas.getContext('webgpu');
+    if (!context) {
+        drawQr(canvas, matrix, rgbToHex(readableDark(palette.dark)), rgbToHex(readableLight(palette.light)));
         return;
     }
 
@@ -183,6 +183,11 @@ function initExport(): void {
 
     byId('btnExport').addEventListener('click', () => {
         reset();
+        if (!device) {
+            options.hidden = true;
+            byId('btnConfirmExport').hidden = true;
+            text.textContent = 'Экспорт работает только в браузере с WebGPU.';
+        }
         modal.classList.add('active');
     });
     byId('btnCancelExport').addEventListener('click', () => modal.classList.remove('active'));

@@ -1,20 +1,26 @@
 import type { QrMatrix } from '@/qr/encode';
 
-export function drawQr(canvas: HTMLCanvasElement, matrix: QrMatrix, color = '#000000'): void {
-    const size = canvas.width;
+const QUIET_ZONE = 4;
+
+export function drawQr(canvas: HTMLCanvasElement, matrix: QrMatrix, dark = '#000000', light = '#ffffff'): void {
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
-    const cell = size / matrix.length;
-    ctx.fillStyle = '#ffffff';
-    ctx.fillRect(0, 0, size, size);
-    ctx.fillStyle = color;
-    for (let r = 0; r < matrix.length; r++) {
-        for (let c = 0; c < matrix.length; c++) {
-            if (matrix[r][c]) {
-                ctx.fillRect(c * cell, r * cell, cell + 0.5, cell + 0.5);
-            }
-        }
-    }
+    const cell = canvas.width / (matrix.length + 2 * QUIET_ZONE);
+    ctx.fillStyle = light;
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    ctx.fillStyle = dark;
+    matrix.forEach((line, r) =>
+        line.forEach((isDark, c) => {
+            if (isDark) ctx.fillRect((c + QUIET_ZONE) * cell, (r + QUIET_ZONE) * cell, cell + 0.5, cell + 0.5);
+        }),
+    );
+}
+
+// A canvas keeps the first context type it was asked for, so switching between 2d and webgpu needs a new element.
+export function freshCanvas(canvas: HTMLCanvasElement): HTMLCanvasElement {
+    const copy = canvas.cloneNode() as HTMLCanvasElement;
+    canvas.replaceWith(copy);
+    return copy;
 }
 
 export function fitCanvas(canvas: HTMLCanvasElement, fallback = canvas.width): void {

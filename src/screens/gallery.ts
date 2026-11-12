@@ -57,9 +57,10 @@ function populateGallery(): void {
             exportGif(e.currentTarget as HTMLButtonElement, entry, seed);
         });
 
-        const context = canvas.getContext('webgpu');
-        if (!device || !context || !format) {
+        const context = device && canvas.getContext('webgpu');
+        if (!context || !format) {
             drawQr(canvas, matrix);
+            row.querySelector<HTMLButtonElement>('[data-gif]')!.hidden = true;
             continue;
         }
         context.configure({ device, format, alphaMode: 'opaque' });
