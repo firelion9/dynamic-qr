@@ -2,9 +2,11 @@ struct Uniforms {
     time: f32,
     seed: f32,
     size: f32,
-    reserved: f32,
+    inverted: f32,
     dark: vec3f,
     light: vec3f,
+    neon: vec3f,
+    accent: vec3f,
 };
 
 @group(0) @binding(0) var<uniform> uniforms: Uniforms;
@@ -57,5 +59,9 @@ fn fragmentShader(in: VertexOutput) -> @location(0) vec4f {
     let s = 1.25 + q;
     let dst = pow(dot(pow(abs(dir), vec2f(s, s)), vec2f(1, 1)), 1 / s);
     var alpha: f32 = smoothstep(0.5, 1.1, dst - p);
-    return vec4f(mix(in.primary, in.secondary, vec3<f32>(alpha, alpha, alpha)), 1.0);
+    var primary = in.primary;
+    if ((in.flags & 1u) == 1u) {
+        primary = keepSide(mix(in.primary, uniforms.neon, p * 3.0), uniforms.inverted < 0.5);
+    }
+    return vec4f(mix(primary, in.secondary, vec3<f32>(alpha, alpha, alpha)), 1.0);
 }

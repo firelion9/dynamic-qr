@@ -1,3 +1,4 @@
+import lumaCode from '@/shaders/luma.wgsl?raw';
 import commonCode from '@/shaders/common.wgsl?raw';
 import shaderCode from '@/shaders/maze.wgsl?raw';
 import { QrMatrix } from '@/qr/encode';
@@ -76,7 +77,7 @@ function mazeAnimation(options: Omit<MazeOptions, 'corridorDark'>): QrAnimation<
         },
 
         init: async function (device: GPUDevice): Promise<void> {
-            shaderModule ??= await compileShader(device, commonCode + shaderCode);
+            shaderModule ??= await compileShader(device, lumaCode + commonCode + shaderCode);
         },
     };
 }

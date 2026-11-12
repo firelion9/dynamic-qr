@@ -1,3 +1,4 @@
+import lumaCode from '@/shaders/luma.wgsl?raw';
 import shaderCode from '@/shaders/flipping.wgsl?raw';
 import { QrMatrix } from "@/qr/encode";
 import { AnimationOptions, compileShader, doDrawQrData, QrAnimation, QrDataBuffers, qrDataToBuffers, updateQrDataUniforms } from "./utils";
@@ -39,7 +40,7 @@ export const FlippingAnimation: QrAnimation<FlippingAnimationState> = {
     },
 
     init: async function (device: GPUDevice): Promise<void> {
-        shaderModule = await compileShader(device, shaderCode);
+        shaderModule = await compileShader(device, lumaCode + shaderCode);
     }
 }
 

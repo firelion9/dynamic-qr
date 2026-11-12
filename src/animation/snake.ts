@@ -1,3 +1,4 @@
+import lumaCode from '@/shaders/luma.wgsl?raw';
 import commonCode from '@/shaders/common.wgsl?raw';
 import shaderCode from '@/shaders/snake.wgsl?raw';
 import { QrMatrix } from '@/qr/encode';
@@ -81,7 +82,7 @@ function snakeAnimation(options: SnakeOptions): QrAnimation<SnakeAnimationState>
         },
 
         init: async function (device: GPUDevice): Promise<void> {
-            shaderModule ??= await compileShader(device, commonCode + shaderCode);
+            shaderModule ??= await compileShader(device, lumaCode + commonCode + shaderCode);
         },
     };
 }

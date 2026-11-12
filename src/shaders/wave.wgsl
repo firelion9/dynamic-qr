@@ -2,9 +2,11 @@ struct Uniforms {
     time: f32,
     seed: f32,
     size: f32,
-    reserved: f32,
+    inverted: f32,
     dark: vec3f,
     light: vec3f,
+    neon: vec3f,
+    accent: vec3f,
 };
 
 @group(0) @binding(0) var<uniform> uniforms: Uniforms;
@@ -82,5 +84,9 @@ fn fragmentShader(in: VertexOutput) -> @location(0) vec4f {
     if ((in.flags & 2) != 0u) {
         alpha = 0.0;
     }
-    return vec4f(mix(in.primary, in.secondary, vec3f(alpha, alpha, alpha)), 1.0);
+    var primary = in.primary;
+    if ((in.flags & 1u) == 1u) {
+        primary = keepSide(mix(in.primary, uniforms.accent, wave), uniforms.inverted < 0.5);
+    }
+    return vec4f(mix(primary, in.secondary, vec3f(alpha, alpha, alpha)), 1.0);
 }
