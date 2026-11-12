@@ -14,6 +14,7 @@ const PLAY_ICON = '<svg viewBox="0 0 24 24" fill="currentColor"><polygon points=
 const PAUSE_ICON = '<svg viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg>';
 
 const player = { runId: 0, time: 0, playing: true };
+let paintChips = (_themed: boolean) => {};
 
 function byId<T extends HTMLElement = HTMLElement>(id: string): T {
     return document.getElementById(id) as T;
@@ -23,6 +24,7 @@ export function setupEditor(): void {
     const entry = catalogEntry(state.selectedStyle);
     byId('backLabel').textContent = entry.title;
     document.querySelectorAll<HTMLElement>('[data-themed]').forEach(el => (el.hidden = !entry.themed));
+    paintChips(entry.themed);
     byId<HTMLInputElement>('messageInput').value = state.currentData;
     setPlaying(true);
     populateEditor();
@@ -103,11 +105,19 @@ function initPalette(): void {
         const chip = document.createElement('button');
         chip.type = 'button';
         chip.className = 'palette-chip';
-        chip.innerHTML = `<i style="background:${rgbToHex(preset.neon)}"></i><i style="background:${rgbToHex(preset.accent)}"></i>${name}`;
+        chip.innerHTML = `<i></i><i></i>${name}`;
         chip.addEventListener('click', () => select(preset));
         byId('paletteRow').appendChild(chip);
         return { chip, preset };
     });
+
+    // Swatches show the colours the current animation really uses.
+    paintChips = themed =>
+        chips.forEach(({ chip, preset }) => {
+            const [first, second] = chip.querySelectorAll('i');
+            first.style.background = rgbToHex(themed ? preset.neon : preset.dark);
+            second.style.background = rgbToHex(themed ? preset.accent : preset.light);
+        });
 
     const select = (next: Palette) => {
         settings.palette = next;
