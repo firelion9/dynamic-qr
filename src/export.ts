@@ -43,7 +43,7 @@ export async function exportAnimation<S>(
     }
 }
 
-class FrameReader {
+export class FrameReader {
     readonly view: GPUTextureView;
     private readonly texture: GPUTexture;
     private readonly buffer: GPUBuffer;

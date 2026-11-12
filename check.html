@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Render check</title>
+    <style>
+        body { margin: 24px; background: #0b0c12; color: #e8eaf4; font: 14px/1.5 system-ui, sans-serif; }
+        table { border-collapse: collapse; }
+        td, th { padding: 4px 12px; text-align: left; border-bottom: 1px solid #222; }
+        .fail { color: #ff6b6b; }
+    </style>
+</head>
+<body>
+    <h1>Читаемость рендера</h1>
+    <p id="status">Рендерим...</p>
+    <table id="table"></table>
+    <script type="module" src="/src/check.ts"></script>
+</body>
+</html>
