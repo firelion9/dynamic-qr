@@ -171,13 +171,25 @@ function initExport(): void {
     const progress = byId('exportProgress');
     const bar = byId('exportProgressBar');
     const text = byId('exportText');
-    const select = (id: string) => byId<HTMLSelectElement>(id).value;
+    const estimate = byId('exportEstimate');
+    const value = (id: string) => byId<HTMLInputElement | HTMLSelectElement>(id).value;
     let running = false;
+
+    // Measured on the maze: a GIF frame takes about 0.06 bytes per pixel at 20 fps.
+    const updateEstimate = () => {
+        const seconds = Number(value('exportSeconds'));
+        byId('exportSecondsValue').textContent = `${seconds} с`;
+        const megabytes = (Number(value('exportSize')) ** 2 * seconds * 20 * 0.06) / 1e6;
+        estimate.hidden = value('exportFormat') !== 'gif' || megabytes < 20;
+        estimate.textContent = `GIF получится примерно на ${Math.round(megabytes)} МБ. Для длинных роликов лучше MP4.`;
+    };
+    ['exportFormat', 'exportSize', 'exportSeconds'].forEach(id => byId(id).addEventListener('input', updateEstimate));
 
     const reset = () => {
         actions.style.display = 'flex';
         options.hidden = false;
         progress.classList.remove('active');
+        updateEstimate();
         text.textContent = 'MP4 подходит для презентаций, GIF для мессенджеров. Кадры совпадают с превью для текущего seed.';
     };
 
@@ -197,14 +209,15 @@ function initExport(): void {
 
     byId('btnConfirmExport').addEventListener('click', async () => {
         if (!device || running) return;
-        const format = select('exportFormat') as ExportFormat;
-        const size = Number(select('exportSize'));
-        const seconds = Number(select('exportSeconds'));
+        const format = value('exportFormat') as ExportFormat;
+        const size = Number(value('exportSize'));
+        const seconds = Number(value('exportSeconds'));
         const { animation } = catalogEntry(state.selectedStyle);
 
         running = true;
         actions.style.display = 'none';
         options.hidden = true;
+        estimate.hidden = true;
         progress.classList.add('active');
         bar.style.width = '0%';
         text.textContent = `Рендерим ${size}×${size}, ${seconds} с...`;

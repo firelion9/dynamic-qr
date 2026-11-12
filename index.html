@@ -149,14 +149,11 @@
                     </select>
                 </div>
                 <div class="field">
-                    <label for="exportSeconds">Длительность</label>
-                    <select id="exportSeconds">
-                        <option value="5">5 с</option>
-                        <option value="10" selected>10 с</option>
-                        <option value="20">20 с</option>
-                    </select>
+                    <label for="exportSeconds">Длительность <span class="mono muted" id="exportSecondsValue">10 с</span></label>
+                    <input type="range" id="exportSeconds" min="5" max="60" step="1" value="10">
                 </div>
             </div>
+            <p class="hint" id="exportEstimate" hidden></p>
             <div class="export-progress" id="exportProgress">
                 <div class="export-progress-bar" id="exportProgressBar"></div>
             </div>
