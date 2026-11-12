@@ -23,10 +23,11 @@ export interface MazeAnimationState {
     palette: Palette;
 }
 
-function mazeAnimation(options: MazeOptions): QrAnimation<MazeAnimationState> {
+function mazeAnimation(options: Omit<MazeOptions, 'corridorDark'>): QrAnimation<MazeAnimationState> {
     return {
         createState: function (device: GPUDevice, data: QrMatrix, seed: number, format: GPUTextureFormat, animationOptions?: AnimationOptions): MazeAnimationState {
-            const game = new MazeGame(data, seed, options);
+            const corridorDark = !animationOptions?.inverted;
+            const game = new MazeGame(data, seed, { ...options, corridorDark });
             const size = data.length + 2 * FRAME;
             const grid = new Uint32Array(size * size);
             const gridBuffer = device.createBuffer({ size: grid.byteLength, usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST });
@@ -46,7 +47,7 @@ function mazeAnimation(options: MazeOptions): QrAnimation<MazeAnimationState> {
             });
 
             const palette = animationOptions?.palette ?? DEFAULT_PALETTE;
-            const state = { game, corridorDark: options.corridorDark, grid, gridBuffer, uniformBuffer, bindGroup, pipeline, time: 0, ticks: 0, palette };
+            const state = { game, corridorDark, grid, gridBuffer, uniformBuffer, bindGroup, pipeline, time: 0, ticks: 0, palette };
             updateGrid(device, state);
             return state;
         },
@@ -105,5 +106,4 @@ function updateGrid(device: GPUDevice, state: MazeAnimationState): void {
     device.queue.writeBuffer(state.gridBuffer, 0, grid);
 }
 
-export const MazeAnimation = mazeAnimation({ corridorDark: true, ghosts: 3 });
-export const MazeNightAnimation = mazeAnimation({ corridorDark: false, ghosts: 3 });
+export const MazeAnimation = mazeAnimation({ ghosts: 3 });

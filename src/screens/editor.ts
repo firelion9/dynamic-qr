@@ -2,7 +2,7 @@ import { encodeQr, QrMatrix } from '@/qr/encode';
 import { device } from '@/gpuState';
 import { catalogEntry } from '@/animation/catalog';
 import { hashSeed } from '@/animation/random';
-import { hexToRgb, Palette, PALETTES, readableDark, readableLight, rgbToHex } from '@/animation/palette';
+import { hexToRgb, Palette, PALETTES, readableColors, readableDark, readableLight, rgbToHex } from '@/animation/palette';
 import { drawQr, fitCanvas, freshCanvas } from '@/draw';
 import { download, ExportFormat, exportAnimation } from '@/export';
 import { screenActive, showScreen } from '@/navigation';
@@ -14,6 +14,7 @@ const PAUSE_ICON = '<svg viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="
 
 const player = { runId: 0, time: 0, speed: 1, playing: true };
 let palette: Palette = PALETTES[0].palette;
+let inverted = false;
 
 function byId<T extends HTMLElement = HTMLElement>(id: string): T {
     return document.getElementById(id) as T;
@@ -46,6 +47,11 @@ export function initEditor(): void {
     byId('btnPlay').addEventListener('click', () => setPlaying(!player.playing));
     byId('qrSize').addEventListener('change', () => populateEditor());
     initPalette();
+    byId('invertToggle').addEventListener('change', e => {
+        inverted = (e.target as HTMLInputElement).checked;
+        byId('invertHint').hidden = !inverted;
+        populateEditor(player.time);
+    });
     byId('timelineSlider').addEventListener('input', e => {
         populateEditor((Number((e.target as HTMLInputElement).value) / 100) * TIMELINE_SECONDS);
     });
@@ -134,14 +140,15 @@ function populateEditor(start = 0): void {
     const matrix = editorMatrix();
     const context = device && canvas.getContext('webgpu');
     if (!context) {
-        drawQr(canvas, matrix, rgbToHex(readableDark(palette.dark)), rgbToHex(readableLight(palette.light)));
+        const { dark, light } = readableColors(palette, inverted);
+        drawQr(canvas, matrix, rgbToHex(dark), rgbToHex(light));
         return;
     }
 
     const format = navigator.gpu.getPreferredCanvasFormat();
     const { animation } = catalogEntry(state.selectedStyle);
     context.configure({ device, format, alphaMode: 'opaque' });
-    const animationState = animation.createState(device, matrix, editorSeed(), format, { palette });
+    const animationState = animation.createState(device, matrix, editorSeed(), format, { palette, inverted });
     animation.frame(device, context.getCurrentTexture().createView(), animationState, start);
     player.time = start;
     showTime(start);
@@ -224,6 +231,7 @@ function initExport(): void {
         try {
             const blob = await exportAnimation(device, animation, editorMatrix(), editorSeed(), {
                 palette,
+                inverted,
                 format,
                 size,
                 seconds,

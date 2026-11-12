@@ -21,6 +21,7 @@ export interface SnakeAnimationState {
     time: number;
     ticks: number;
     palette: Palette;
+    inverted: boolean;
 }
 
 function snakeAnimation(options: SnakeOptions): QrAnimation<SnakeAnimationState> {
@@ -52,7 +53,7 @@ function snakeAnimation(options: SnakeOptions): QrAnimation<SnakeAnimationState>
             });
 
             const palette = animationOptions?.palette ?? DEFAULT_PALETTE;
-            const state = { game, base, grid: new Uint32Array(base), gridBuffer, uniformBuffer, bindGroup, pipeline, time: 0, ticks: 0, palette };
+            const state = { game, base, grid: new Uint32Array(base), gridBuffer, uniformBuffer, bindGroup, pipeline, time: 0, ticks: 0, palette, inverted: !!animationOptions?.inverted };
             updateGrid(device, state);
             return state;
         },
@@ -65,7 +66,7 @@ function snakeAnimation(options: SnakeOptions): QrAnimation<SnakeAnimationState>
                 updateGrid(device, state);
             }
             const { neon, accent, dark, light } = state.palette;
-            const uniforms = [state.time, Math.sqrt(state.grid.length), 0, 0, ...neon, 0, ...accent, 0, ...dark, 0, ...light, 0];
+            const uniforms = [state.time, Math.sqrt(state.grid.length), state.inverted ? 1 : 0, 0, ...neon, 0, ...accent, 0, ...dark, 0, ...light, 0];
             device.queue.writeBuffer(state.uniformBuffer, 0, new Float32Array(uniforms));
 
             const encoder = device.createCommandEncoder();
