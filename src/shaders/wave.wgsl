@@ -77,13 +77,10 @@ fn fragmentShader(in: VertexOutput) -> @location(0) vec4f {
     let s = mix(baseS, 2.0, wave);
     let dst = pow(dot(pow(abs(dir), vec2f(s, s)), vec2f(1, 1)), 1 / s);
     let shrink = wave * 0.7;
-    // Reserved modules (e.g. the corner finder patterns) use a fixed circular
-    // shape with no jitter, matching the breath animation so they read cleanly.
+    // Scanners look for solid finder and timing patterns, so reserved modules stay square.
     var alpha: f32 = smoothstep(0.5, 1.1, dst - shrink);
     if ((in.flags & 2) != 0u) {
-        let sRes = 2.0;
-        let dstRes = pow(dot(pow(abs(dir), vec2f(sRes, sRes)), vec2f(1, 1)), 1 / sRes);
-        alpha = smoothstep(0.5, 1.1, dstRes - 0.3);
+        alpha = 0.0;
     }
     return vec4f(mix(in.primary, in.secondary, vec3f(alpha, alpha, alpha)), 1.0);
 }
