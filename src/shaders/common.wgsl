@@ -47,7 +47,7 @@ fn ground(c: vec2i, s: vec2i, detailed: bool) -> vec3f {
 fn wall(c: vec2i, s: vec2i, detailed: bool) -> vec4f {
     let tube = mix(u.neon, u.light, 0.8);
     let fill = u.light;
-    if (!detailed) { return vec4f(tube, 0.0); }
+    if (!detailed) { return vec4f(fill, 0.0); }
     let up = open(cell(c + vec2i(0, -1)));
     let down = open(cell(c + vec2i(0, 1)));
     let left = open(cell(c + vec2i(-1, 0)));
