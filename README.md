@@ -6,6 +6,11 @@ Animated QR codes rendered in the browser with WebGPU. Every frame stays scannab
 
 ![demo](img/demo.gif)
 
+
+## Background
+This is a ITMO DevDays Fall 2026 project:
+[presentation](https://docs.google.com/presentation/d/1YsosUxPsP7XGP0n4yF2yn-bPYR6De5udvW7dcuoLQd8/edit?usp=sharing).
+
 ## Animations
 
 | Animation | What happens |
