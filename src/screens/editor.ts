@@ -5,7 +5,7 @@ import { hashSeed } from '@/animation/random';
 import { hexToRgb, Palette, PALETTES, readableColors, readableDark, readableLight, rgbToHex } from '@/animation/palette';
 import { drawQr, fitCanvas, freshCanvas } from '@/draw';
 import { download, ExportFormat, exportAnimation } from '@/export';
-import { screenActive, showScreen } from '@/navigation';
+import { goBack, screenActive } from '@/navigation';
 import { saveSettings, settings } from '@/settings';
 import { state } from '@/state';
 
@@ -41,7 +41,7 @@ export function initEditor(): void {
     byId('invertHint').hidden = !settings.inverted;
 
     byId('messageInput').addEventListener('input', () => populateEditor());
-    byId('btnBack').addEventListener('click', () => showScreen(2));
+    byId('btnBack').addEventListener('click', goBack);
     seed.addEventListener('input', () => {
         settings.seed = seed.value.trim();
         saveSettings();
