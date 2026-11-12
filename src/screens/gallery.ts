@@ -2,7 +2,7 @@ import { encodeQr } from '@/qr/encode';
 import { device } from '@/gpuState';
 import { CATALOG, CatalogEntry } from '@/animation/catalog';
 import { drawQr, fitCanvas } from '@/draw';
-import { screenActive, showScreen } from '@/navigation';
+import { goBack, screenActive, showScreen } from '@/navigation';
 import { readableColors, rgbToHex } from '@/animation/palette';
 import { settings } from '@/settings';
 import { state } from '@/state';
@@ -11,7 +11,7 @@ import { setupEditor } from './editor';
 let runId = 0;
 
 export function initGallery(): void {
-    document.getElementById('btnGalleryBack')!.addEventListener('click', () => showScreen(1));
+    document.getElementById('btnGalleryBack')!.addEventListener('click', goBack);
 
     const observer = new MutationObserver(() => {
         if (screenActive(2)) populateGallery();

@@ -1,9 +1,9 @@
 import { initWebGPU } from '@/main';
 import { device } from '@/gpuState';
-import { showScreen } from '@/navigation';
+import { goBack, showScreen, type ScreenKey } from '@/navigation';
 import { initInput } from '@/screens/input';
 import { initGallery } from '@/screens/gallery';
-import { initEditor } from '@/screens/editor';
+import { initEditor, setupEditor } from '@/screens/editor';
 import { startBackground } from '@/background';
 
 initWebGPU()
@@ -18,3 +18,17 @@ document.querySelectorAll('[data-home]').forEach(btn => {
 initInput();
 initGallery();
 initEditor();
+
+history.replaceState({ screen: 1 }, '');
+addEventListener('popstate', e => {
+    const screen: ScreenKey = e.state?.screen ?? 1;
+    showScreen(screen, false);
+    if (screen === 3) setupEditor();
+});
+addEventListener('keydown', e => {
+    const typing = e.target instanceof HTMLInputElement && e.target.type === 'text';
+    if (e.altKey && e.key === 'ArrowLeft' && !typing) {
+        e.preventDefault();
+        goBack();
+    }
+});
