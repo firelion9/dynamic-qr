@@ -19,4 +19,4 @@ export const AllAnimations = new Map<string, QrAnimation<any>>([
     ["wave", WaveAnimation],
 ]);
 
-export const AllAnimationsList = AllAnimations.values().toArray();
+export const AllAnimationsList = [...AllAnimations.values()];
