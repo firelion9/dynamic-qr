@@ -215,6 +215,7 @@ function initExport(): void {
                 size,
                 seconds,
                 fps: format === 'gif' ? 20 : 30,
+                speed: player.speed,
                 onProgress: done => (bar.style.width = Math.round(done * 100) + '%'),
             });
             download(blob, `qr-${state.selectedStyle}-${size}.${format}`);
