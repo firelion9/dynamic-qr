@@ -104,7 +104,8 @@ fn fragmentShader(in: VertexOutput) -> @location(0) vec4f {
 }
 
 // Waves may tint a module but never move it across the light/dark threshold a scanner uses.
-fn readable(c: vec3f, dark: bool) -> vec3f {
+fn readable(color: vec3f, dark: bool) -> vec3f {
+    let c = clamp(color, vec3f(0.0), vec3f(1.0));
     let l = dot(c, vec3f(0.299, 0.587, 0.114));
     if (dark) { return c * min(1.0, 0.28 / max(l, 1e-4)); }
     return mix(c, vec3f(1.0), max(0.0, (0.72 - l) / (1.0 - l)));
