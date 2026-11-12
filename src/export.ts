@@ -10,6 +10,7 @@ export interface ExportOptions extends Partial<AnimationOptions> {
     size: number;
     seconds: number;
     fps: number;
+    speed?: number;
     onProgress?: (done: number) => void;
 }
 
@@ -32,7 +33,7 @@ export async function exportAnimation<S>(
     const reader = new FrameReader(device, size);
     try {
         for (let i = 0; i < frames; i++) {
-            animation.frame(device, reader.view, state, i === 0 ? 0 : 1 / fps);
+            animation.frame(device, reader.view, state, i === 0 ? 0 : (options.speed ?? 1) / fps);
             await writer.add(await reader.read(), i);
             options.onProgress?.((i + 1) / frames);
         }
