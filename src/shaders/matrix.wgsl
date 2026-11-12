@@ -74,7 +74,7 @@ fn fragmentShader(in: VertexOutput) -> @location(0) vec4f {
     let c = vec2i(floor(p));
     let f = cell(c);
     let s = vec2i(floor(fract(p) * 7.0));
-    let detailed = fwidth(p.x) < 1.0 / 6.0;
+    let detailed = detailedAt(p);
 
     // Rain covers whole tiles, so modules get stricter caps than single sprites elsewhere.
     let col = clampLuma(code(c, s, f, detailed), !shownDark(f), MATRIX_DARK, MATRIX_LIGHT);

@@ -115,7 +115,7 @@ fn fragmentShader(in: VertexOutput) -> @location(0) vec4f {
     let c = vec2i(floor(p));
     let f = cell(c);
     let s = vec2i(floor(fract(p) * 7.0));
-    let detailed = fwidth(p.x) < 1.0 / 6.0;
+    let detailed = detailedAt(p);
 
     var col: vec4f;
     if (actor(f) == 1u) {

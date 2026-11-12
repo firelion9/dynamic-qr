@@ -21,6 +21,11 @@ fn readable(c: vec3f, p: vec2f, light: bool) -> vec3f {
     return mix(core, edge, smoothstep(0.3, 0.45, max(local.x, local.y)));
 }
 
+// Sprite details need about 11 px per module; smaller previews get flat colours instead of noisy specks.
+fn detailedAt(p: vec2f) -> bool {
+    return fwidth(p.x) < 1.0 / 11.0;
+}
+
 fn hash(p: vec3f) -> f32 {
     return fract(sin(dot(p, vec3f(12.9898, 78.233, 37.719))) * 43758.5453);
 }
