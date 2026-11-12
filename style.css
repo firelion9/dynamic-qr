@@ -438,6 +438,7 @@ input[type='range'] {
     width: 10px;
     height: 10px;
     border-radius: 50%;
+    box-shadow: 0 0 0 1px var(--line-strong);
 }
 
 .color-row {
@@ -446,15 +447,20 @@ input[type='range'] {
     gap: 10px 18px;
 }
 
-.switch {
+.field > .switch {
     display: inline-flex;
+    justify-content: flex-start;
     align-items: center;
     gap: 10px;
     font-size: 14px;
+    font-weight: 500;
+    letter-spacing: 0;
+    text-transform: none;
+    color: var(--text);
     cursor: pointer;
 }
 
-.switch input {
+.field > .switch input {
     width: 18px;
     height: 18px;
     margin: 0;
