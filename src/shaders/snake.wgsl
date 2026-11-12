@@ -1,6 +1,7 @@
 struct Uniforms {
     time: f32,
     size: f32,
+    inverted: f32,
     neon: vec3f,
     accent: vec3f,
     dark: vec3f,
@@ -30,7 +31,8 @@ fn dir(f: u32) -> u32 { return (f >> 16u) & 3u; }
 fn snake(f: u32) -> u32 { return (f >> 18u) & 3u; }
 fn isSnake(f: u32) -> bool { return sprite(f) >= 1u && sprite(f) <= 4u; }
 fn dark(f: u32) -> bool { return (f & 1u) != 0u; }
-fn open(f: u32) -> bool { return dark(f) || sprite(f) != 0u; }
+fn shownDark(f: u32) -> bool { return dark(f) != (u.inverted > 0.5); }
+fn open(f: u32) -> bool { return shownDark(f) || sprite(f) != 0u; }
 
 fn linked(f: u32, c: vec2i) -> bool {
     let g = cell(c);
@@ -51,7 +53,7 @@ fn body(f: u32, c: vec2i, s: vec2i, detailed: bool) -> vec4f {
     var col = select(SNAKE[snake(f)], u.accent, snake(f) == 0u);
     if (index(f) % 2u == 1u) { col *= 0.82; }
     if (index(f) == 0u) { col *= 0.8; }
-    if (sprite(f) == 2u || sprite(f) == 4u) { col = mix(col * 1.6, vec3f(1.0), 0.62); }
+    if (!shownDark(f)) { col = mix(col * 1.6, vec3f(1.0), 0.62); }
     if (!detailed) { return vec4f(col, 0.0); }
 
     let outline = col * 0.55;
@@ -83,5 +85,5 @@ fn fragmentShader(in: VertexOutput) -> @location(0) vec4f {
     if (!open(f)) { col = wall(c, s, detailed); }
     if (sprite(f) == 5u) { col = apple(s, detailed); }
     if (isSnake(f)) { col = body(f, c, s, detailed); }
-    return vec4f(mix(readable(col.rgb, p, !dark(f)), col.rgb, col.a), 1.0);
+    return vec4f(mix(readable(col.rgb, p, !shownDark(f)), col.rgb, col.a), 1.0);
 }

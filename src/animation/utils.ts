@@ -1,10 +1,11 @@
 import { FrameRenderer } from "@/gpuState";
 import { QrMatrix } from "@/qr/encode";
 import { freeModules, qrLayout } from "@/qr/layout";
-import { DEFAULT_PALETTE, type Palette } from "./palette";
+import { readableColors, type Palette } from "./palette";
 
 export interface AnimationOptions {
     palette: Palette;
+    inverted?: boolean;
 }
 
 export interface QrAnimation<S> {
@@ -28,12 +29,13 @@ export interface QrDataBuffers {
     time: number;
     seed: number;
     colors: Palette;
+    inverted: boolean;
 }
 
 export function updateQrDataUniforms (data: QrDataBuffers, device: GPUDevice, delta: number) {
     data.time += delta;
     const { dark, light } = data.colors;
-    device.queue.writeBuffer(data.uniformBuffer, 0, new Float32Array([data.time, data.seed, data.qrSize, 0, ...dark, 0, ...light, 0]));
+    device.queue.writeBuffer(data.uniformBuffer, 0, new Float32Array([data.time, data.seed, data.qrSize, data.inverted ? 1 : 0, ...dark, 0, ...light, 0]));
 }
 
 export function doDrawQrData (data: QrDataBuffers, pass: GPURenderPassEncoder) {
@@ -67,7 +69,9 @@ export function toRenderable<S>(animation: QrAnimation<S>, state: S): FrameRende
     }
 }
 
-export function qrDataToBuffers(device: GPUDevice, data: QrMatrix, seed: number, colors = DEFAULT_PALETTE, frame = 4): QrDataBuffers {
+export function qrDataToBuffers(device: GPUDevice, data: QrMatrix, seed: number, options?: AnimationOptions, frame = 4): QrDataBuffers {
+    const inverted = !!options?.inverted;
+    const colors = readableColors(options?.palette, inverted);
     const n = data.length + 2 * frame;
     const vertexCount = n * n * 2 * 3;
     const moduleSize = 1.0 / n;
@@ -170,5 +174,6 @@ export function qrDataToBuffers(device: GPUDevice, data: QrMatrix, seed: number,
         time: 0.0,
         seed: seed,
         colors,
+        inverted,
     };
 }

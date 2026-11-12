@@ -2,7 +2,7 @@ struct Uniforms {
     time: f32,
     seed: f32,
     size: f32,
-    reserved: f32,
+    inverted: f32,
     dark: vec3f,
     light: vec3f,
 };
@@ -100,7 +100,7 @@ fn fragmentShader(in: VertexOutput) -> @location(0) vec4f {
     res = applyWave(res, in.pos, 2);
     res = applyWave(res, in.pos, 3);
 
-    return vec4f(readable(res.rgb, (in.flags & 1) == 1), 1.0);
+    return vec4f(readable(res.rgb, ((in.flags & 1) == 1) != (uniforms.inverted > 0.5)), 1.0);
 }
 
 // Waves may tint a module but never move it across the light/dark threshold a scanner uses.

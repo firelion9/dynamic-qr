@@ -35,8 +35,10 @@ export function readableDark(c: Rgb): Rgb {
     return l <= MAX_DARK ? c : (c.map(v => (v * MAX_DARK) / l) as Rgb);
 }
 
-export function readableColors(palette?: Palette): Palette {
-    return palette ? { dark: readableDark(palette.dark), light: readableLight(palette.light), neon: palette.neon, accent: palette.accent } : DEFAULT_PALETTE;
+export function readableColors(palette = DEFAULT_PALETTE, inverted = false): Palette {
+    const dark = readableDark(palette.dark);
+    const light = readableLight(palette.light);
+    return { ...palette, dark: inverted ? light : dark, light: inverted ? dark : light };
 }
 
 export function readableLight(c: Rgb): Rgb {

@@ -18,13 +18,13 @@ export interface CheckRow {
     failed: string[];
 }
 
-async function checkAnimation(entry: CatalogEntry): Promise<CheckRow> {
+async function checkAnimation(entry: CatalogEntry, inverted: boolean): Promise<CheckRow> {
     const matrix = encodeQr(TEXT);
-    const row: CheckRow = { key: entry.key, passed: 0, total: 0, failed: [] };
+    const row: CheckRow = { key: entry.key + (inverted ? ' inv' : ''), passed: 0, total: 0, failed: [] };
     for (const size of SIZES) {
         const reader = new FrameReader(device, size);
         for (const seed of SEEDS) {
-            const state = entry.animation.createState(device, matrix, seed, 'rgba8unorm', { palette: DEFAULT_PALETTE });
+            const state = entry.animation.createState(device, matrix, seed, 'rgba8unorm', { palette: DEFAULT_PALETTE, inverted });
             let time = 0;
             for (const t of TIMES) {
                 entry.animation.frame(device, reader.view, state, t - time);
@@ -59,9 +59,11 @@ async function run(): Promise<void> {
     }
     const rows: CheckRow[] = [];
     for (const entry of CATALOG) {
-        status.textContent = `Проверяем ${entry.key}...`;
-        rows.push(await checkAnimation(entry));
-        show(rows);
+        for (const inverted of [false, true]) {
+            status.textContent = `Проверяем ${entry.key}...`;
+            rows.push(await checkAnimation(entry, inverted));
+            show(rows);
+        }
     }
     const failed = rows.filter(r => r.failed.length).length;
     status.textContent = failed ? `Не читаются: ${failed} из ${rows.length}` : 'Все анимации читаются';
