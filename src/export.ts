@@ -29,7 +29,11 @@ export async function exportAnimation<S>(
 ): Promise<Blob> {
     const { size, fps } = options;
     const frames = Math.round(options.seconds * fps);
-    const state = animation.createState(device, matrix, seed, 'rgba8unorm', { palette: options.palette ?? DEFAULT_PALETTE, inverted: options.inverted });
+    const state = animation.createState(device, matrix, seed, 'rgba8unorm', {
+        palette: options.palette ?? DEFAULT_PALETTE,
+        inverted: options.inverted,
+        trainText: options.trainText,
+    });
     const writer = options.format === 'mp4' ? await mp4Writer(size, fps) : gifWriter(size, fps);
     const reader = new FrameReader(device, size);
     try {

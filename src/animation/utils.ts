@@ -4,8 +4,9 @@ import { freeModules, qrLayout } from "@/qr/layout";
 import { readableColors, type Palette } from "./palette";
 
 export interface AnimationOptions {
-    palette: Palette;
+    palette?: Palette;
     inverted?: boolean;
+    trainText?: string;
 }
 
 export interface QrAnimation<S> {

@@ -26,6 +26,12 @@ export function setupEditor(): void {
     document.querySelectorAll<HTMLElement>('[data-themed]').forEach(el => (el.hidden = !entry.themed));
     paintChips(entry.themed);
     byId<HTMLInputElement>('messageInput').value = state.currentData;
+
+    const trainTextField = byId('trainTextField');
+    if (trainTextField) {
+        trainTextField.style.display = state.selectedStyle === 'train' ? 'grid' : 'none';
+    }
+
     setPlaying(true);
     populateEditor();
 }
@@ -43,6 +49,7 @@ export function initEditor(): void {
     byId('invertHint').hidden = !settings.inverted;
 
     byId('messageInput').addEventListener('input', () => populateEditor());
+    byId('trainTextInput')?.addEventListener('input', () => populateEditor());
     byId('btnBack').addEventListener('click', goBack);
     seed.addEventListener('input', () => {
         settings.seed = seed.value.trim();
@@ -91,6 +98,10 @@ export function editorMatrix(): QrMatrix {
 
 export function editorSeed(): number {
     return hashSeed(settings.seed);
+}
+
+export function editorTrainText(): string {
+    return byId<HTMLInputElement>('trainTextInput')?.value || 'ИТМО';
 }
 
 function initPalette(): void {
@@ -178,7 +189,11 @@ function populateEditor(start = 0): void {
     const format = navigator.gpu.getPreferredCanvasFormat();
     const { animation } = catalogEntry(state.selectedStyle);
     context.configure({ device, format, alphaMode: 'opaque' });
-    const animationState = animation.createState(device, matrix, editorSeed(), format, { palette: settings.palette, inverted: settings.inverted });
+    const animationState = animation.createState(device, matrix, editorSeed(), format, {
+        palette: settings.palette,
+        inverted: settings.inverted,
+        trainText: editorTrainText(),
+    });
     animation.frame(device, context.getCurrentTexture().createView(), animationState, start);
     player.time = start;
     showTime(start);
@@ -262,6 +277,7 @@ function initExport(): void {
             const blob = await exportAnimation(device, animation, editorMatrix(), editorSeed(), {
                 palette: settings.palette,
                 inverted: settings.inverted,
+                trainText: editorTrainText(),
                 format,
                 size,
                 seconds,
