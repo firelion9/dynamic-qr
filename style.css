@@ -114,11 +114,8 @@ svg {
     letter-spacing: 0.02em;
 }
 
-.brand svg {
-    width: 22px;
-    height: 22px;
-    fill: var(--accent);
-    stroke: none;
+.brand img {
+    display: block;
 }
 
 .app {
