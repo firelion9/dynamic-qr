@@ -1,4 +1,5 @@
 import { FlameAnimation } from "./flame";
+import { GithubAnimation, RadarAnimation } from "./designs";
 import { FloodAnimation } from "./flood";
 import { LifeAnimation } from "./life";
 import { TrainAnimation } from "./train";
@@ -26,6 +27,8 @@ export const AllAnimations = new Map<string, QrAnimation<any>>([
     ["waves", WavesAnimation],
     ["wave", WaveAnimation],
     ["matrix", MatrixAnimation],
+    ["github", GithubAnimation],
+    ["radar", RadarAnimation],
 ]);
 
 export const AllAnimationsList = [...AllAnimations.values()];

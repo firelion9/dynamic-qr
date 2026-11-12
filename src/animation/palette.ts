@@ -37,6 +37,7 @@ export const PALETTES: { name: string; palette: Palette }[] = [
     { name: 'Ретро', palette: GRUVBOX_PALETTE },
     { name: 'Закат', palette: themed([1.0, 0.2, 0.45], [0.15, 0.9, 1.0]) },
     { name: 'Матрица', palette: themed([0.05, 0.85, 0.3], [0.9, 1.0, 0.9]) },
+    { name: 'GitHub', palette: { dark: hexToRgb('#0e4429'), light: hexToRgb('#ebedf0'), neon: hexToRgb('#40c463'), accent: hexToRgb('#216e39') } },
     { name: 'Графит', palette: themed([0.45, 0.45, 0.5], [1.0, 0.35, 0.3]) },
     { name: 'Классика', palette: { dark: [0.0, 0.0, 0.0], light: [1.0, 1.0, 1.0], neon: [0.75, 0.75, 0.75], accent: [0.1, 0.1, 0.1] } },
 ];
