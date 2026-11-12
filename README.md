@@ -8,12 +8,11 @@ cells, pulsing breath, maze transitions and more. Export the result as a
 GIF or MP4, or verify that your animated code is still scannable right in
 the browser.
 
-![qr-snake demo](qr-snake-720.gif)
+![demo](img/demo.gif)
 
 ## Features
 
 - Procedural WebGPU shader animations (snake, wave, flipping, breath, maze, static)
-- Live scannability check via `zxing-wasm`
 - Export animated QR to GIF and MP4
 - Editor with animation catalog and gallery
 
