@@ -198,7 +198,7 @@ function initExport(): void {
     byId('btnConfirmExport').addEventListener('click', async () => {
         if (!device || running) return;
         const format = select('exportFormat') as ExportFormat;
-        const size = format === 'gif' ? Math.min(Number(select('exportSize')), 720) : Number(select('exportSize'));
+        const size = Number(select('exportSize'));
         const seconds = Number(select('exportSeconds'));
         const { animation } = catalogEntry(state.selectedStyle);
 
