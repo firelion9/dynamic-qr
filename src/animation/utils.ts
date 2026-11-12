@@ -34,8 +34,8 @@ export interface QrDataBuffers {
 
 export function updateQrDataUniforms (data: QrDataBuffers, device: GPUDevice, delta: number) {
     data.time += delta;
-    const { dark, light } = data.colors;
-    device.queue.writeBuffer(data.uniformBuffer, 0, new Float32Array([data.time, data.seed, data.qrSize, data.inverted ? 1 : 0, ...dark, 0, ...light, 0]));
+    const { dark, light, neon, accent } = data.colors;
+    device.queue.writeBuffer(data.uniformBuffer, 0, new Float32Array([data.time, data.seed, data.qrSize, data.inverted ? 1 : 0, ...dark, 0, ...light, 0, ...neon, 0, ...accent, 0]));
 }
 
 export function doDrawQrData (data: QrDataBuffers, pass: GPURenderPassEncoder) {
@@ -154,7 +154,7 @@ export function qrDataToBuffers(device: GPUDevice, data: QrMatrix, seed: number,
         }],
     });
     const uniformBuffer = device.createBuffer({
-        size: 48,
+        size: 80,
         usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST,
     });
 

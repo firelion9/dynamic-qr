@@ -24,7 +24,7 @@ export const CATALOG: CatalogEntry[] = INFO.filter(([key]) => AllAnimations.has(
     key,
     title,
     description,
-    themed: key.startsWith('snake') || key.startsWith('maze') || key == 'waves',
+    themed: key !== 'static',
     animation: AllAnimations.get(key)!,
 }));
 
