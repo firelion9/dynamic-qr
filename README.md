@@ -16,6 +16,7 @@ Animated QR codes rendered in the browser with WebGPU. Every frame stays scannab
 | Breath | Modules pulse as soft dots |
 | Beat | A ring of dots pulses out from the centre |
 | Waves | Coloured ripples run across the code |
+| Matrix | Dim digits in dark modules and falling streams of digital rain |
 | Static | Plain code, for comparison |
 
 The editor lets you pick a palette or your own colours, invert the code (light on dark), make the code bigger, change seed and speed, and export MP4 or GIF up to 2048 px and 60 s. Settings are kept in the browser.
