@@ -84,7 +84,6 @@ fn fragmentShader(in: VertexOutput) -> @location(0) vec4f {
     let distFromCenter = max(abs(local.x), abs(local.y));
 
     let st = stage(f);
-    let cellDark = shownDark(f);
     let bg = select(u.light, u.dark, u.inverted > 0.5);
     let fg = select(u.dark, u.light, u.inverted > 0.5);
 
@@ -145,7 +144,7 @@ fn fragmentShader(in: VertexOutput) -> @location(0) vec4f {
         let ashColor = mix(fg * 0.70, bg, 0.65);
         color = mix(ashColor, bg, smoothstep(0.10, 0.85, t));
     } else {
-        if (cellDark) {
+        if (isDark(f)) {
             color = fg;
 
             let upCell = cell(c + vec2i(0, -1));
@@ -157,20 +156,15 @@ fn fragmentShader(in: VertexOutput) -> @location(0) vec4f {
             if (nearFire && distFromCenter > 0.36) {
                 let heatSpill = (distFromCenter - 0.36) / 0.14;
                 color = mix(color, u.neon, heatSpill * 0.60);
-            } else if (distFromCenter > 0.46) {
-                color = mix(fg, bg, 0.05);
             }
         } else {
             color = bg;
-            if (distFromCenter > 0.46) {
-                color = mix(bg, fg, 0.04);
-            }
         }
     }
 
     if (st == 0u || st == 3u || st == 4u) {
         if (distFromCenter < 0.35) {
-            color = clampLuma(color, !cellDark);
+            color = clampLuma(color, !shownDark(f));
         }
     }
 

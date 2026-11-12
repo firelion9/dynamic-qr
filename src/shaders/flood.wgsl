@@ -71,22 +71,18 @@ fn fragmentShader(in: VertexOutput) -> @location(0) vec4f {
     let c = vec2i(floor(p));
     let f = cell(c);
 
-    let local = fract(p) - 0.5;
-    let dist = max(abs(local.x), abs(local.y));
-
-    let dark = shownDark(f);
+    let dark = isDark(f);
     let water = isWater(f);
 
-    let edge = smoothstep(0.48, 0.44, dist);
     let bg = select(u.light, u.dark, u.inverted > 0.5);
     let fg = select(u.dark, u.light, u.inverted > 0.5);
     var color: vec3f;
 
     if (dark) {
-        color = mix(bg, fg, edge);
+        color = fg;
     } else if (water) {
         let waterColor = clampLuma(u.neon, u.inverted < 0.5);
-        color = mix(bg, waterColor, edge);
+        color = waterColor;
     } else {
         color = bg;
     }
