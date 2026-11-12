@@ -6,15 +6,14 @@ import { hexToRgb, Palette, PALETTES, readableColors, readableDark, readableLigh
 import { drawQr, fitCanvas, freshCanvas } from '@/draw';
 import { download, ExportFormat, exportAnimation } from '@/export';
 import { screenActive, showScreen } from '@/navigation';
+import { saveSettings, settings } from '@/settings';
 import { state } from '@/state';
 
 const TIMELINE_SECONDS = 30;
 const PLAY_ICON = '<svg viewBox="0 0 24 24" fill="currentColor"><polygon points="5,3 19,12 5,21"/></svg>';
 const PAUSE_ICON = '<svg viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg>';
 
-const player = { runId: 0, time: 0, speed: 1, playing: true };
-let palette: Palette = PALETTES[0].palette;
-let inverted = false;
+const player = { runId: 0, time: 0, playing: true };
 
 function byId<T extends HTMLElement = HTMLElement>(id: string): T {
     return document.getElementById(id) as T;
@@ -30,28 +29,47 @@ export function setupEditor(): void {
 }
 
 export function initEditor(): void {
+    const seed = byId<HTMLInputElement>('seedInput');
+    const speed = byId<HTMLInputElement>('speedSlider');
+    const size = byId<HTMLSelectElement>('qrSize');
+    const invert = byId<HTMLInputElement>('invertToggle');
+    seed.value = settings.seed;
+    speed.value = String(settings.speed);
+    byId('speedValue').textContent = settings.speed.toFixed(1);
+    size.value = String(settings.qrSize);
+    invert.checked = settings.inverted;
+    byId('invertHint').hidden = !settings.inverted;
+
     byId('messageInput').addEventListener('input', () => populateEditor());
-    byId('seedInput').addEventListener('input', () => populateEditor());
     byId('btnBack').addEventListener('click', () => showScreen(2));
-
-    byId('speedSlider').addEventListener('input', e => {
-        player.speed = parseFloat((e.target as HTMLInputElement).value);
-        byId('speedValue').textContent = player.speed.toFixed(1);
-    });
-
-    byId('btnRefresh').addEventListener('click', () => {
-        byId<HTMLInputElement>('seedInput').value = String(Math.floor(Math.random() * 1e9));
+    seed.addEventListener('input', () => {
+        settings.seed = seed.value.trim();
+        saveSettings();
         populateEditor();
+    });
+    byId('btnRefresh').addEventListener('click', () => {
+        seed.value = String(Math.floor(Math.random() * 1e9));
+        seed.dispatchEvent(new Event('input'));
+    });
+    speed.addEventListener('input', () => {
+        settings.speed = parseFloat(speed.value);
+        byId('speedValue').textContent = settings.speed.toFixed(1);
+        saveSettings();
+    });
+    size.addEventListener('change', () => {
+        settings.qrSize = Number(size.value);
+        saveSettings();
+        populateEditor();
+    });
+    invert.addEventListener('change', () => {
+        settings.inverted = invert.checked;
+        byId('invertHint').hidden = !settings.inverted;
+        saveSettings();
+        populateEditor(player.time);
     });
 
     byId('btnPlay').addEventListener('click', () => setPlaying(!player.playing));
-    byId('qrSize').addEventListener('change', () => populateEditor());
     initPalette();
-    byId('invertToggle').addEventListener('change', e => {
-        inverted = (e.target as HTMLInputElement).checked;
-        byId('invertHint').hidden = !inverted;
-        populateEditor(player.time);
-    });
     byId('timelineSlider').addEventListener('input', e => {
         populateEditor((Number((e.target as HTMLInputElement).value) / 100) * TIMELINE_SECONDS);
     });
@@ -66,11 +84,11 @@ export function editorData(): string {
 export function editorMatrix(): QrMatrix {
     const text = editorData();
     const version = (encodeQr(text).length - 17) / 4;
-    return encodeQr(text, 'H', version + Number(byId<HTMLSelectElement>('qrSize').value));
+    return encodeQr(text, 'H', version + settings.qrSize);
 }
 
 export function editorSeed(): number {
-    return hashSeed(byId<HTMLInputElement>('seedInput').value.trim());
+    return hashSeed(settings.seed);
 }
 
 function initPalette(): void {
@@ -92,8 +110,10 @@ function initPalette(): void {
     });
 
     const select = (next: Palette) => {
-        palette = next;
-        chips.forEach(({ chip, preset }) => chip.setAttribute('aria-pressed', String(preset === next)));
+        settings.palette = next;
+        saveSettings();
+        const current = JSON.stringify(next);
+        chips.forEach(({ chip, preset }) => chip.setAttribute('aria-pressed', String(JSON.stringify(preset) === current)));
         if (screenActive(3)) populateEditor(player.time);
     };
     const show = (next: Palette) => {
@@ -119,8 +139,8 @@ function initPalette(): void {
             show(preset);
         });
     }
-    show(palette);
-    select(palette);
+    show(settings.palette);
+    select(settings.palette);
 }
 
 function setPlaying(playing: boolean): void {
@@ -140,7 +160,7 @@ function populateEditor(start = 0): void {
     const matrix = editorMatrix();
     const context = device && canvas.getContext('webgpu');
     if (!context) {
-        const { dark, light } = readableColors(palette, inverted);
+        const { dark, light } = readableColors(settings.palette, settings.inverted);
         drawQr(canvas, matrix, rgbToHex(dark), rgbToHex(light));
         return;
     }
@@ -148,7 +168,7 @@ function populateEditor(start = 0): void {
     const format = navigator.gpu.getPreferredCanvasFormat();
     const { animation } = catalogEntry(state.selectedStyle);
     context.configure({ device, format, alphaMode: 'opaque' });
-    const animationState = animation.createState(device, matrix, editorSeed(), format, { palette, inverted });
+    const animationState = animation.createState(device, matrix, editorSeed(), format, { palette: settings.palette, inverted: settings.inverted });
     animation.frame(device, context.getCurrentTexture().createView(), animationState, start);
     player.time = start;
     showTime(start);
@@ -157,7 +177,7 @@ function populateEditor(start = 0): void {
     let prev = -1;
     const loop = (now: number) => {
         if (runId !== player.runId || !screenActive(3)) return;
-        const delta = prev < 0 || !player.playing ? 0 : ((now - prev) / 1000) * player.speed;
+        const delta = prev < 0 || !player.playing ? 0 : ((now - prev) / 1000) * settings.speed;
         prev = now;
         if (player.time + delta >= TIMELINE_SECONDS) {
             populateEditor();
@@ -230,13 +250,13 @@ function initExport(): void {
         text.textContent = `Рендерим ${size}×${size}, ${seconds} с...`;
         try {
             const blob = await exportAnimation(device, animation, editorMatrix(), editorSeed(), {
-                palette,
-                inverted,
+                palette: settings.palette,
+                inverted: settings.inverted,
                 format,
                 size,
                 seconds,
                 fps: format === 'gif' ? 20 : 30,
-                speed: player.speed,
+                speed: settings.speed,
                 onProgress: done => (bar.style.width = Math.round(done * 100) + '%'),
             });
             download(blob, `qr-${state.selectedStyle}-${size}.${format}`);
