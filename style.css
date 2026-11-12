@@ -399,8 +399,23 @@ input[type='range'] {
     color: var(--muted);
 }
 
+.field > label.stacked {
+    flex-direction: column;
+    gap: 2px;
+}
+
+.field > label span {
+    text-transform: none;
+}
+
+.field-grid input[type='range'] {
+    height: 44px;
+    margin: 0;
+}
+
 .field-grid {
     display: grid;
+    align-items: end;
     grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 16px;
 }
