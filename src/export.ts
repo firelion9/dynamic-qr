@@ -82,26 +82,46 @@ class FrameReader {
     }
 }
 
-async function mp4Writer(size: number, fps: number): Promise<FrameWriter> {
-    const config: VideoEncoderConfig = {
-        codec: 'avc1.640033',
-        width: size,
-        height: size,
-        framerate: fps,
-        bitrate: Math.round(size * size * fps * 0.2),
-    };
-    if (!(await VideoEncoder.isConfigSupported(config)).supported) {
-        throw new Error('Браузер не умеет кодировать MP4 такого размера');
-    }
+// Constrained Baseline first: Firefox encodes H.264 with OpenH264, which supports nothing else.
+const AVC_CODECS = ['avc1.42e033', 'avc1.640033'];
 
-    const muxer = new Muxer({ target: new ArrayBufferTarget(), video: { codec: 'avc', width: size, height: size }, fastStart: 'in-memory' });
-    let failure: DOMException | null = null;
+async function mp4Writer(size: number, fps: number): Promise<FrameWriter> {
+    let config: VideoEncoderConfig | null = null;
+    for (const codec of AVC_CODECS) {
+        const candidate: VideoEncoderConfig = {
+            codec,
+            width: size,
+            height: size,
+            framerate: fps,
+            bitrate: Math.round(size * size * fps * 0.2),
+            avc: { format: 'avc' },
+        };
+        if ((await VideoEncoder.isConfigSupported(candidate)).supported) {
+            config = candidate;
+            break;
+        }
+    }
+    if (!config) throw new Error('Браузер не умеет кодировать MP4 такого размера, попробуйте GIF');
+
+    const muxer = new Muxer({
+        target: new ArrayBufferTarget(),
+        video: { codec: 'avc', width: size, height: size },
+        fastStart: 'in-memory',
+        firstTimestampBehavior: 'offset',
+    });
+    let failure: unknown = null;
     const encoder = new VideoEncoder({
-        output: (chunk, meta) => muxer.addVideoChunk(chunk, meta),
-        error: e => (failure = e),
+        output: (chunk, meta) => {
+            try {
+                muxer.addVideoChunk(chunk, meta);
+            } catch (e) {
+                failure ??= e;
+            }
+        },
+        error: e => (failure ??= e),
     });
     encoder.configure(config);
-    const frameUs = 1e6 / fps;
+    const frameUs = Math.round(1e6 / fps);
 
     return {
         async add(pixels, index) {
@@ -114,6 +134,7 @@ async function mp4Writer(size: number, fps: number): Promise<FrameWriter> {
         async finish() {
             await encoder.flush();
             encoder.close();
+            if (failure) throw failure;
             muxer.finalize();
             return new Blob([muxer.target.buffer], { type: 'video/mp4' });
         },
